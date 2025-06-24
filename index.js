@@ -12,7 +12,7 @@ const app = express();
 const server = http.createServer(app);
 const io = new Server(server, { cors: { origin: '*' } });
 
-mongoose.connect(process.env.MONGO_URI)
+mongoose.connect("mongodb+srv://miladnasir2023:8O8uUwSdt3zWxiu1@cluster0.hhwwcod.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0")
   .then(() => console.log('MongoDB connected'))
   .catch((err) => console.log(err));
 
