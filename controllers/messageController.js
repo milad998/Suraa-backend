@@ -1,13 +1,19 @@
 const Message = require('../models/Message');
 
+
 exports.sendMessage = async (req, res) => {
-  const { sender, receiver, text } = req.body;
-  const audioUrl = req.file ? req.file.path : null;
+  try {
+    const sender = req.user.id; // أو req.user._id حسب التوكن
+    const { receiver, text } = req.body;
+    const audioUrl = req.file ? req.file.path : null;
 
-  const message = new Message({ sender, receiver, text, audio: audioUrl });
-  await message.save();
+    const message = new Message({ sender, receiver, text, audio: audioUrl });
+    await message.save();
 
-  res.status(201).json(message);
+    res.status(201).json(message);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to send message' });
+  }
 };
 exports.getMessages = async (req, res) => {
   try {
