@@ -9,7 +9,7 @@ exports.sendMessage = async (req, res) => {
 
     const message = new Message({ sender, receiver, text, audio: audioUrl });
     await message.save();
-
+    console.log(sender)
     res.status(201).json(message);
   } catch (err) {
     res.status(500).json({ error: 'Failed to send message' });
@@ -19,7 +19,7 @@ exports.getMessages = async (req, res) => {
   try {
     const { user2 } = req.params;
     const user1 = req.user.id
-
+    console.log(user1)
     const messages = await Message.find({
       $or: [
         { sender: user1, receiver: user2 },
