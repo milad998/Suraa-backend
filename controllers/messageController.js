@@ -17,7 +17,8 @@ exports.sendMessage = async (req, res) => {
 };
 exports.getMessages = async (req, res) => {
   try {
-    const { user1, user2 } = req.params;
+    const { user2 } = req.params;
+    const user1 = req.user.id
 
     const messages = await Message.find({
       $or: [
