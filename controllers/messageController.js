@@ -9,3 +9,19 @@ exports.sendMessage = async (req, res) => {
 
   res.status(201).json(message);
 };
+exports.getMessages = async (req, res) => {
+  try {
+    const { user1, user2 } = req.params;
+
+    const messages = await Message.find({
+      $or: [
+        { sender: user1, receiver: user2 },
+        { sender: user2, receiver: user1 },
+      ]
+    }).sort({ timestamp: 1 });
+
+    res.json(messages);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to fetch messages' });
+  }
+};
