@@ -1,7 +1,7 @@
 const Message = require('../models/Message');
 
 
-exports.sendMessage = async (req, res) => {
+
 exports.sendMessage = async (req, res) => {
   try {
     // 👇 هذا يطبع الكائنات بشكل قابل للقراءة
@@ -25,6 +25,7 @@ exports.sendMessage = async (req, res) => {
     });
   }
 };
+
 exports.getMessages = async (req, res) => {
   try {
     const { user2 } = req.params;
