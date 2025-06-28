@@ -3,10 +3,14 @@ const Message = require('../models/Message');
 
 exports.sendMessage = async (req, res) => {
   try {
+    
     const sender = req.user.id; // أو req.user._id حسب التوكن
     const { receiver, text } = req.body;
     const audioUrl = req.file ? req.file.path : null;
 
+    console.log('Body:', JSON.stringify(req.body, null, 2));
+    console.log('File:', JSON.stringify(req.file, null, 2));
+    
     const message = new Message({ sender, receiver, text, audio: audioUrl });
     await message.save();
     
