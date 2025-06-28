@@ -2,21 +2,27 @@ const Message = require('../models/Message');
 
 
 exports.sendMessage = async (req, res) => {
+exports.sendMessage = async (req, res) => {
   try {
-    
-    const sender = req.user.id; // أو req.user._id حسب التوكن
+    // 👇 هذا يطبع الكائنات بشكل قابل للقراءة
+    console.log('✅ req.body:', JSON.stringify(req.body, null, 2));
+    console.log('✅ req.file:', JSON.stringify(req.file, null, 2));
+
+    const sender = req.user.id;
     const { receiver, text } = req.body;
     const audioUrl = req.file ? req.file.path : null;
 
-    console.log('Body:', JSON.stringify(req.body, null, 2));
-    console.log('File:', JSON.stringify(req.file, null, 2));
-    
     const message = new Message({ sender, receiver, text, audio: audioUrl });
     await message.save();
-    
+
     res.status(201).json(message);
   } catch (err) {
-    res.status(500).json({ error: 'Failed to send message' });
+    console.error('❌ Send Message Error:', err);
+    res.status(500).json({
+      error: 'Failed to send message',
+      message: err.message,
+      stack: err.stack
+    });
   }
 };
 exports.getMessages = async (req, res) => {
