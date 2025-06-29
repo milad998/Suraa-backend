@@ -7,32 +7,54 @@ require('dotenv').config();
 
 const userRoutes = require('./routes/userRoutes');
 const messageRoutes = require('./routes/messageRoutes');
+const Message = require('./models/Message'); // ✅ استيراد الموديل
 
 const app = express();
 const server = http.createServer(app);
 const io = new Server(server, { cors: { origin: '*' } });
 
-mongoose.connect("mongodb+srv://miladnasir2023:8O8uUwSdt3zWxiu1@cluster0.hhwwcod.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0")
+// ✅ MongoDB
+mongoose.connect(process.env.MONGO_URI)
   .then(() => console.log('MongoDB connected'))
   .catch((err) => console.log(err));
 
+// ✅ Middleware
 app.use(cors());
 app.use(express.json());
 
+// ✅ API Routes
 app.use('/api/users', userRoutes);
 app.use('/api/messages', messageRoutes);
 
+// ✅ Socket.IO
 io.on('connection', (socket) => {
-  console.log('Client connected:', socket.id);
+  console.log('🟢 Client connected:', socket.id);
 
-  socket.on('sendMessage', (msg) => {
-    socket.broadcast.emit('receiveMessage', msg);
+  // 📌 المستخدم يرسل معرفه للانضمام لغرفة خاصة
+  socket.on('join', (userId) => {
+    socket.join(userId);
+    console.log(`🟡 User ${userId} joined their room`);
+  });
+
+  // 📩 إرسال رسالة: تخزين + بث للطرف الآخر فقط
+  socket.on('sendMessage', async (data) => {
+    try {
+      const { sender, receiver, text } = data;
+      const newMessage = new Message({ sender, receiver, text });
+      await newMessage.save();
+
+      // إرسال للطرف المستقبل فقط
+      io.to(receiver).emit('receiveMessage', newMessage);
+    } catch (err) {
+      console.error('❌ Error saving message:', err.message);
+    }
   });
 
   socket.on('disconnect', () => {
-    console.log('Client disconnected:', socket.id);
+    console.log('🔴 Client disconnected:', socket.id);
   });
 });
 
+// ✅ Port
 const PORT = process.env.PORT || 5000;
-server.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+server.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
