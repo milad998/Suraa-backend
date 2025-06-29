@@ -1,5 +1,4 @@
 const express = require('express');
-const upload = require('../middleware/upload');
 const authMiddleware = require('../middleware/auth');
 const { sendMessage, getMessages } = require('../controllers/messageController');
 
