@@ -1,18 +1,12 @@
 const Message = require('../models/Message');
-const uploadToFirebase = require('../utils/uploadToFirebase');
 
 exports.sendMessage = async (req, res) => {
   try {
     const sender = req.user.id;
     const { receiver, text } = req.body;
 
-    let audioUrl = null;
-
-    if (req.file) {
-      audioUrl = await uploadToFirebase(req.file.buffer, req.file.originalname, req.file.mimetype);
-    }
-
-    const message = new Message({ sender, receiver, text, audio: audioUrl });
+    
+    const message = new Message({ sender, receiver, text});
     await message.save();
 
     res.status(201).json(message);
