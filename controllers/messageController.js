@@ -1,16 +1,16 @@
 const Message = require('../models/Message');
-
-
+const uploadToFirebase = require('../utils/uploadToFirebase');
 
 exports.sendMessage = async (req, res) => {
   try {
-    // 👇 هذا يطبع الكائنات بشكل قابل للقراءة
-    console.log('✅ req.body:', JSON.stringify(req.body, null, 2));
-    console.log('✅ req.file:', JSON.stringify(req.file.path, null, 2));
-
     const sender = req.user.id;
     const { receiver, text } = req.body;
-    const audioUrl = req.file ? req.file.path : null;
+
+    let audioUrl = null;
+
+    if (req.file) {
+      audioUrl = await uploadToFirebase(req.file.buffer, req.file.originalname, req.file.mimetype);
+    }
 
     const message = new Message({ sender, receiver, text, audio: audioUrl });
     await message.save();
@@ -21,7 +21,6 @@ exports.sendMessage = async (req, res) => {
     res.status(500).json({
       error: 'Failed to send message',
       message: err.message,
-      stack: err.stack
     });
   }
 };
@@ -29,8 +28,8 @@ exports.sendMessage = async (req, res) => {
 exports.getMessages = async (req, res) => {
   try {
     const { user2 } = req.params;
-    const user1 = req.user.id
-    
+    const user1 = req.user.id;
+
     const messages = await Message.find({
       $or: [
         { sender: user1, receiver: user2 },
