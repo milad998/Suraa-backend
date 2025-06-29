@@ -18,7 +18,6 @@ mongoose.connect("mongodb+srv://miladnasir2023:8O8uUwSdt3zWxiu1@cluster0.hhwwcod
 
 app.use(cors());
 app.use(express.json());
-app.use('/uploads', express.static('uploads'));
 
 app.use('/api/users', userRoutes);
 app.use('/api/messages', messageRoutes);
