@@ -49,7 +49,17 @@ io.on('connection', (socket) => {
       console.error('❌ Error saving message:', err.message);
     }
   });
+  socket.on('deleteMessage', async (data) => {
+  try {
+    const { messageId, receiverId } = data;
+    await Message.findByIdAndDelete(messageId);
 
+    // إعلام الطرف الآخر
+    io.to(receiverId).emit('messageDeleted', { messageId });
+  } catch (err) {
+    console.error('❌ Socket Delete Error:', err);
+  }
+});
   socket.on('disconnect', () => {
     console.log('🔴 Client disconnected:', socket.id);
   });
