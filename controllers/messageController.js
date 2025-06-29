@@ -6,7 +6,7 @@ exports.sendMessage = async (req, res) => {
   try {
     // 👇 هذا يطبع الكائنات بشكل قابل للقراءة
     console.log('✅ req.body:', JSON.stringify(req.body, null, 2));
-    console.log('✅ req.file:', JSON.stringify(req.file, null, 2));
+    console.log('✅ req.file:', JSON.stringify(req.file.path, null, 2));
 
     const sender = req.user.id;
     const { receiver, text } = req.body;
