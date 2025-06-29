@@ -36,3 +36,25 @@ exports.getMessages = async (req, res) => {
     res.status(500).json({ error: 'Failed to fetch messages' });
   }
 };
+exports.deleteMessage = async (req, res) => {
+  try {
+    const messageId = req.params.id;
+    const userId = req.user.id;
+
+    const message = await Message.findById(messageId);
+    if (!message) {
+      return res.status(404).json({ error: 'Message not found' });
+    }
+
+    // ✅ السماح بالحذف فقط إن كان المرسل هو من يريد الحذف
+    if (message.sender.toString() !== userId) {
+      return res.status(403).json({ error: 'You can only delete your own messages' });
+    }
+
+    await Message.findByIdAndDelete(messageId);
+    res.json({ message: 'Message deleted' });
+  } catch (err) {
+    console.error('❌ Delete Message Error:', err);
+    res.status(500).json({ error: 'Failed to delete message' });
+  }
+};
