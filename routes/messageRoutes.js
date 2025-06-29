@@ -5,7 +5,7 @@ const { sendMessage, getMessages } = require('../controllers/messageController')
 
 const router = express.Router();
 
-router.post('/', authMiddleware, upload.single('audio'), sendMessage);
+router.post('/', authMiddleware, sendMessage);
 router.get('/:user2', authMiddleware, getMessages);
 
 module.exports = router;
