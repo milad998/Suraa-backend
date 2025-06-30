@@ -1,5 +1,5 @@
 const Message = require('../models/Message');
-const Chat = require('../models/Chat'); // ✅ استيراد جدول المحادثات
+const Chat = require('../models/Chats'); // ✅ استيراد جدول المحادثات
 
 // 🟢 إرسال رسالة
 exports.sendMessage = async (req, res) => {
