@@ -8,7 +8,7 @@ exports.getChats = async (req, res) => {
       .populate('users', 'username') // جلب اسم المستخدم للطرف الآخر
       .sort({ updatedAt: -1 });
 
-    res.status(200).json(chats);
+    res.json(chats);
   } catch (err) {
     res.status(500).json({ error: 'Failed to fetch chats' });
   }
