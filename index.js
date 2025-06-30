@@ -4,7 +4,7 @@ const cors = require('cors');
 const http = require('http');
 const { Server } = require('socket.io');
 require('dotenv').config();
-
+const chatRoutes = require('./routes/chatRoutes');
 const userRoutes = require('./routes/userRoutes');
 const messageRoutes = require('./routes/messageRoutes');
 const Message = require('./models/Message'); // ✅ استيراد الموديل
@@ -25,7 +25,7 @@ app.use(express.json());
 // ✅ API Routes
 app.use('/api/users', userRoutes);
 app.use('/api/messages', messageRoutes);
-
+app.use('/api/chats', chatRoutes);
 // ✅ Socket.IO
 io.on('connection', (socket) => {
   console.log('🟢 Client connected:', socket.id);
