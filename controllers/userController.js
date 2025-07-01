@@ -36,7 +36,6 @@ exports.loginUser = async (req, res) => {
   }
 };
 
-const User = require('../models/User');
 
 exports.searchContacts = async (req, res) => {
   const { phones } = req.body; // مصفوفة أرقام الهواتف
