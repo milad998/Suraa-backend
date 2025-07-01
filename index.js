@@ -1,8 +1,6 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const rateLimit = require('express-rate-limit');
-
-
 const helmet = require('helmet');
 const cors = require('cors');
 const http = require('http');
@@ -32,7 +30,7 @@ const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
     origin: process.env.CLIENT_URL || '*',
-    methods: ['GET', 'POST','DELETE']
+    methods: ['GET', 'POST', 'DELETE']
   }
 });
 
@@ -45,8 +43,6 @@ mongoose.connect(process.env.MONGO_URI)
 app.use(cors());
 app.use(express.json());
 app.use('/uploads', express.static('uploads'));
-
-
 app.use(helmet());
 app.use(rateLimit({
   windowMs: 15 * 60 * 1000,
@@ -80,14 +76,14 @@ io.on('connection', (socket) => {
 
       let audioUrl = null;
 
-      // رفع الصوت إن وُجد
+      // ✅ رفع الصوت إن وُجد
       if (audioBase64) {
         const buffer = Buffer.from(audioBase64, 'base64');
-        const fileName = `voice/${Date.now()}_${audioName || 'audio.mp3'}`;
+        const fileName = `${Date.now()}_${audioName || 'audio.mp3'}`; // ✅ بدون "voice/"
 
         const { data: uploadData, error } = await supabase
           .storage
-          .from('voice')
+          .from('voice') // ✅ اسم الباكت الصحيح
           .upload(fileName, buffer, {
             contentType: audioType || 'audio/mpeg',
             upsert: true,
@@ -95,16 +91,18 @@ io.on('connection', (socket) => {
 
         if (error) {
           console.error('❌ رفع الصوت فشل:', error.message);
-          return socket.emit('errorMessage', { error: 'فشل في رفع الصوت' });
+          return socket.emit('errorMessage', { error: 'فشل في رفع الصوت', details: error.message });
         }
 
-        audioUrl = `${process.env.SUPABASE_URL}/storage/v1/object/public/${uploadData.path}`;
+        // ✅ توليد رابط الملف بعد الرفع
+        audioUrl = `${process.env.SUPABASE_URL}/storage/v1/object/public/voice/${fileName}`;
       }
 
+      // ✅ إنشاء الرسالة وتخزينها
       const newMessage = new Message({ sender, receiver, text, audioUrl });
       await newMessage.save();
 
-      // إرسال للطرف المستقبل
+      // ✅ إرسال للطرف المستقبل
       io.to(receiver).emit('receiveMessage', newMessage);
       socket.emit('messageSent', { success: true, message: newMessage });
 
