@@ -49,3 +49,18 @@ project/
 ├── .env 
 ├── index.js
 └── package.json
+---
+
+## ⚙️ خطوات التشغيل
+
+1. **نسخ المشروع**
+   ```bash
+   git clone https://github.com/milad998/Suraa-backend.git
+
+## 🔨 تثبيت المكاتب
+
+npm install
+
+## 📍 تشغيل
+
+npm start
