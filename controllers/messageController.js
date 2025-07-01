@@ -28,7 +28,7 @@ exports.sendMessage = async (req, res) => {
       const fileName = `audios/${Date.now()}_${req.file.originalname}`;
 
       const { data, error } = await supabase.storage
-        .from('audios')
+        .from('voice')
         .upload(fileName, fileBuffer, {
           contentType: req.file.mimetype,
           upsert: true,
