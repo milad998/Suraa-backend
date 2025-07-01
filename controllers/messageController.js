@@ -15,16 +15,14 @@ exports.sendMessage = async (req, res) => {
     const sender = req.user.id;
     const { receiver, text } = req.body;
 
-    // ✅ تحقق من وجود المستقبل
     if (!receiver) {
       return res.status(400).json({ error: 'الرجاء تحديد المستقبل' });
     }
 
     let audioUrl = null;
 
-    // ✅ رفع الصوت إلى Supabase إن وُجد
-    
-
+    // ✅ رفع الصوت إلى Supabase إن وُجد ملف صوتي
+    if (req.file) {
       const filePath = req.file.path;
       const fileBuffer = fs.readFileSync(filePath);
       const fileName = `audios/${Date.now()}_${req.file.originalname}`;
@@ -36,8 +34,7 @@ exports.sendMessage = async (req, res) => {
           upsert: true,
         });
 
-      // حذف الملف المؤقت من السيرفر
-      fs.unlinkSync(filePath);
+      fs.unlinkSync(filePath); // حذف الملف من السيرفر بعد الرفع
 
       if (error) {
         return res.status(500).json({ error: 'فشل في رفع الصوت', details: error.message });
