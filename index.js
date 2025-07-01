@@ -83,11 +83,11 @@ io.on('connection', (socket) => {
       // رفع الصوت إن وُجد
       if (audioBase64) {
         const buffer = Buffer.from(audioBase64, 'base64');
-        const fileName = `audios/${Date.now()}_${audioName || 'audio.mp3'}`;
+        const fileName = `voice/${Date.now()}_${audioName || 'audio.mp3'}`;
 
         const { data: uploadData, error } = await supabase
           .storage
-          .from('audios')
+          .from('voice')
           .upload(fileName, buffer, {
             contentType: audioType || 'audio/mpeg',
             upsert: true,
