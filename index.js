@@ -1,5 +1,10 @@
 const express = require('express');
 const mongoose = require('mongoose');
+const rateLimit = require('express-rate-limit');
+const xss = require('xss-clean');
+const mongoSanitize = require('express-mongo-sanitize');
+
+const helmet = require('helmet');
 const cors = require('cors');
 const http = require('http');
 const { Server } = require('socket.io');
@@ -19,9 +24,24 @@ mongoose.connect(process.env.MONGO_URI)
   .catch((err) => console.log(err));
 
 // ✅ Middleware
-app.use(cors());
+
+app.use(cors({
+  methods: ['GET', 'POST', 'DELETE'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
 app.use(express.json());
 
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // كل 15 دقيقة
+  max: 100, // 100 طلب فقط
+  message: { error: 'Too many requests, please try again later.' }
+});
+
+app.use(xss());           // ✅ يمنع XSS
+app.use(mongoSanitize()); // ✅ يمنع NoSQL injection
+
+app.use(helmet()); // ✅ قبل الراوترات
+app.use(limiter); // ✅ قبل الراوترات
 // ✅ API Routes
 app.use('/api/users', userRoutes);
 app.use('/api/messages', messageRoutes);
