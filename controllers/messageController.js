@@ -40,7 +40,7 @@ exports.sendMessage = async (req, res) => {
         return res.status(500).json({ error: 'فشل في رفع الصوت', details: error.message });
       }
 
-    audioUrl = `${process.env.SUPABASE_URL}/storage/v1/object/public/voice/${fileName}?apikey=${process.env.SUPABASE_ANON_KEY}`;
+    audioUrl = `${process.env.SUPABASE_URL}/storage/v1/object/public/voice/${fileName}`;
     }
 
     // ✅ إنشاء الرسالة
