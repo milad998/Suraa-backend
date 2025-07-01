@@ -1,62 +1,12 @@
-const Message = require('../models/Message');
-const Chat = require('../models/Chats'); // ✅ استيراد جدول المحادثات
-
-// 🟢 إرسال رسالة
-const multer = require('multer');
-const fs = require('fs');
-const path = require('path');
-const { createClient } = require('@supabase/supabase-js');
-const Message = require('../models/Message');
-const Chat = require('../models/Chats');
-
-// إعداد Supabase
-const supabase = createClient(
-  'https://iwnqfkblmlkndwiybvsj.supabase.co',
-  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml3bnFma2JsbWxrbmR3aXlidnNqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTEzOTEwMDksImV4cCI6MjA2Njk2NzAwOX0.tU3vhSHFFaiUceQ3cQoapAPdRxN5PmS17OXqlnTUP4U'
-);
-
-// إعداد multer
-const upload = multer({ dest: 'uploads/' });
-
-// 🟢 إرسال رسالة نص/صوت
-exports.sendMessage = [
-  upload.single('audio'),
-  async (req, res) => {
-    try {
-      const sender = req.user.id;
-      const { receiver, text } = req.body;
-
-      let audioUrl = null;
-
-      // ✅ رفع الصوت إن وجد
-      if (req.file) {
-        const filePath = req.file.path;
-        const fileBuffer = fs.readFileSync(filePath);
-        const fileName = `audios/${Date.now()}_${req.file.originalname}`;
-
-        const { data, error } = await supabase.storage
-          .from('audios')
-          .upload(fileName, fileBuffer, {
-            contentType: req.file.mimetype,
-            upsert: true,
-          });
-
-        fs.unlinkSync(filePath); // حذف الملف من السيرفر
-
-        if (error) {
-          return res.status(500).json({ error: 'خطأ في رفع الصوت', details: error.message });
-        }
-
-        audioUrl = `https://iwnqfkblmlkndwiybvsj.supabase.co/storage/v1/object/public/${data.path}`;
 const fs = require('fs');
 const { createClient } = require('@supabase/supabase-js');
 const Message = require('../models/Message');
 const Chat = require('../models/Chats');
 
-// إعداد Supabase
+// ✅ إعداد Supabase من .env
 const supabase = createClient(
-  'https://iwnqfkblmlkndwiybvsj.supabase.co',
-  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml3bnFma2JsbWxrbmR3aXlidnNqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTEzOTEwMDksImV4cCI6MjA2Njk2NzAwOX0.tU3vhSHFFaiUceQ3cQoapAPdRxN5PmS17OXqlnTUP4U'
+  process.env.SUPABASE_URL,
+  process.env.SUPABASE_ANON_KEY
 );
 
 // 🟢 إرسال رسالة (نص أو صوت)
@@ -67,6 +17,7 @@ exports.sendMessage = async (req, res) => {
 
     let audioUrl = null;
 
+    // ✅ رفع الصوت إلى Supabase إن وُجد
     if (req.file) {
       const filePath = req.file.path;
       const fileBuffer = fs.readFileSync(filePath);
@@ -79,20 +30,22 @@ exports.sendMessage = async (req, res) => {
           upsert: true,
         });
 
+      // حذف الملف المؤقت من السيرفر
       fs.unlinkSync(filePath);
 
       if (error) {
         return res.status(500).json({ error: 'فشل في رفع الصوت', details: error.message });
       }
 
-      audioUrl = `https://iwnqfkblmlkndwiybvsj.supabase.co/storage/v1/object/public/${data.path}`;
+      audioUrl = `${process.env.SUPABASE_URL}/storage/v1/object/public/${data.path}`;
     }
 
+    // ✅ إنشاء الرسالة
     const message = new Message({ sender, receiver, text, audioUrl });
     await message.save();
 
+    // ✅ تحديث أو إنشاء المحادثة
     let chat = await Chat.findOne({ users: { $all: [sender, receiver] } });
-
     const latestMessage = text || '🎤 رسالة صوتية';
 
     if (!chat) {
@@ -117,6 +70,7 @@ exports.sendMessage = async (req, res) => {
     });
   }
 };
+
 // 🔵 جلب الرسائل بين مستخدمين
 exports.getMessages = async (req, res) => {
   try {
@@ -132,7 +86,8 @@ exports.getMessages = async (req, res) => {
 
     res.json(messages);
   } catch (err) {
-    res.status(500).json({ error: 'Failed to fetch messages' });
+    console.error('❌ Get Messages Error:', err);
+    res.status(500).json({ error: 'فشل في جلب الرسائل' });
   }
 };
 
@@ -144,19 +99,17 @@ exports.deleteMessage = async (req, res) => {
 
     const message = await Message.findById(messageId);
     if (!message) {
-      return res.status(404).json({ error: 'Message not found' });
+      return res.status(404).json({ error: 'الرسالة غير موجودة' });
     }
 
     if (message.sender.toString() !== userId) {
-      return res.status(403).json({ error: 'You can only delete your own messages' });
+      return res.status(403).json({ error: 'يمكنك حذف رسائلك فقط' });
     }
 
     await Message.findByIdAndDelete(messageId);
-    res.json({ message: 'Message deleted' });
+    res.json({ message: 'تم حذف الرسالة بنجاح' });
   } catch (err) {
     console.error('❌ Delete Message Error:', err);
-    res.status(500).json({ error: 'Failed to delete message' });
+    res.status(500).json({ error: 'فشل في حذف الرسالة' });
   }
 };
-
-
