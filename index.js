@@ -95,7 +95,7 @@ io.on('connection', (socket) => {
         }
 
         // ✅ توليد رابط الملف بعد الرفع
-        audioUrl = `${process.env.SUPABASE_URL}/storage/v1/object/public/voice/${fileName}?apikey=${process.env.SUPABASE_ANON_KEY}`;
+        audioUrl = `${process.env.SUPABASE_URL}/storage/v1/object/public/voice/${fileName}`;
       }
 
       // ✅ إنشاء الرسالة وتخزينها
