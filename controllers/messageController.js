@@ -3,7 +3,7 @@ const { createClient } = require('@supabase/supabase-js');
 const Message = require('../models/Message');
 const Chat = require('../models/Chats');
 
-// ✅ إعداد Supabase من .env
+// إعداد Supabase
 const supabase = createClient(
   process.env.SUPABASE_URL,
   process.env.SUPABASE_ANON_KEY
@@ -25,10 +25,10 @@ exports.sendMessage = async (req, res) => {
     if (req.file) {
       const filePath = req.file.path;
       const fileBuffer = fs.readFileSync(filePath);
-      const fileName = `audios/${Date.now()}_${req.file.originalname}`;
+      const fileName = `${Date.now()}_${req.file.originalname}`; // ✅ بدون "voice/"
 
       const { data, error } = await supabase.storage
-        .from('voice')
+        .from('voice') // ✅ اسم الباكت الصحيح
         .upload(fileName, fileBuffer, {
           contentType: req.file.mimetype,
           upsert: true,
@@ -40,7 +40,7 @@ exports.sendMessage = async (req, res) => {
         return res.status(500).json({ error: 'فشل في رفع الصوت', details: error.message });
       }
 
-      audioUrl = `${process.env.SUPABASE_URL}/storage/v1/object/public/${data.path}`;
+      audioUrl = `${process.env.SUPABASE_URL}/storage/v1/object/public/voice/${fileName}`; // ✅ الرابط النهائي
     }
 
     // ✅ إنشاء الرسالة
