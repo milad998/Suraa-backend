@@ -19,22 +19,30 @@ exports.createUser = async (req, res) => {
     res.status(500).json({ error: 'Registration failed' });
   }
 };
-
-
-exports.getUsers = async (req, res) => {
-  const users = await User.find();
-  res.json(users);
-};
 exports.loginUser = async (req, res) => {
-  const { username, password } = req.body;
+  const { phone, password } = req.body;
 
-  const user = await User.findOne({ username });
-  if (!user) return res.status(400).json({ error: 'User not found' });
+  try {
+    const user = await User.findOne({ phone });
+    if (!user) return res.status(400).json({ error: 'User not found' });
 
-  const isMatch = await bcrypt.compare(password, user.password);
-  if (!isMatch) return res.status(401).json({ error: 'Invalid password' });
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) return res.status(401).json({ error: 'Invalid password' });
 
-  const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET);
+    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET);
+    res.json({ token, id: user._id });
+  } catch (err) {
+    res.status(500).json({ error: 'Login failed' });
+  }
+};
 
-  res.json({ token, id: user._id });
+exports.searchContacts = async (req, res) => {
+  const { phones } = req.body; // مصفوفة أرقام
+
+  try {
+    const users = await User.find({ phone: { $in: phones } }, '_id username phone');
+    res.json(users);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to search contacts' });
+  }
 };
