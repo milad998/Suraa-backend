@@ -86,7 +86,9 @@ messageDeleted	{ messageId }	إعلام الطرف الآخر أنه تم حذف
 
 هذا المشروع مفتوح المصدر ومتاح تحت رخصة MIT.
 
+## License
 
+This project is licensed under the MIT License - see the [LICENSE](./LICENSE) file for details.
 ---
 
 👤 المطوّر
