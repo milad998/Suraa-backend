@@ -1,7 +1,7 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const rateLimit = require('express-rate-limit');
-const xss = require('xss-clean');
+
 const mongoSanitize = require('express-mongo-sanitize');
 const helmet = require('helmet');
 const cors = require('cors');
@@ -45,7 +45,7 @@ mongoose.connect(process.env.MONGO_URI)
 app.use(cors());
 app.use(express.json());
 app.use('/uploads', express.static('uploads'));
-app.use(xss());
+
 app.use(mongoSanitize());
 app.use(helmet());
 app.use(rateLimit({
