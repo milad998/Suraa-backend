@@ -36,13 +36,16 @@ exports.loginUser = async (req, res) => {
   }
 };
 
+const User = require('../models/User');
+
 exports.searchContacts = async (req, res) => {
-  const { phones } = req.body; // مصفوفة أرقام
+  const { phones } = req.body; // مصفوفة أرقام الهواتف
 
   try {
     const users = await User.find({ phone: { $in: phones } }, '_id username phone');
-    res.json(users);
+    res.json(users); // ✅ يرجع فقط المسجلين
   } catch (err) {
+    console.error('❌ Search Contacts Error:', err);
     res.status(500).json({ error: 'Failed to search contacts' });
   }
 };
