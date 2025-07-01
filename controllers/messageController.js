@@ -23,13 +23,7 @@ exports.sendMessage = async (req, res) => {
     let audioUrl = null;
 
     // ✅ رفع الصوت إلى Supabase إن وُجد
-    if (req.file) {
-      const allowedTypes = ['audio/mpeg', 'audio/mp3', 'audio/wav', 'audio/aac', 'audio/ogg'];
-
-      if (!allowedTypes.includes(req.file.mimetype)) {
-        fs.unlinkSync(req.file.path); // حذف الملف
-        return res.status(400).json({ error: 'نوع الملف الصوتي غير مسموح' });
-      }
+    
 
       const filePath = req.file.path;
       const fileBuffer = fs.readFileSync(filePath);
