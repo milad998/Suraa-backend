@@ -76,16 +76,28 @@ io.on('connection', (socket) => {
 
       let audioUrl = null;
 
-      // ✅ رفع الصوت إن وُجد
       if (audioBase64) {
         const buffer = Buffer.from(audioBase64, 'base64');
-        const fileName = `${Date.now()}_${audioName || 'audio.mp3'}`; // ✅ بدون "voice/"
+
+        // خريطة أنواع MIME بناءً على امتداد الملف
+        const mimeTypes = {
+          '.aac': 'audio/aac',
+          '.mp3': 'audio/mpeg',
+          '.wav': 'audio/wav',
+          '.ogg': 'audio/ogg',
+          '.m4a': 'audio/mp4',
+        };
+
+        const ext = path.extname(audioName || '').toLowerCase();
+        const contentType = mimeTypes[ext] || audioType || 'audio/mpeg';
+
+        const fileName = `${Date.now()}_${audioName || 'audio.mp3'}`;
 
         const { data: uploadData, error } = await supabase
           .storage
-          .from('voice') // ✅ اسم الباكت الصحيح
+          .from('voice')
           .upload(fileName, buffer, {
-            contentType: audioType || 'audio/mpeg',
+            contentType: contentType,
             upsert: true,
           });
 
@@ -94,15 +106,12 @@ io.on('connection', (socket) => {
           return socket.emit('errorMessage', { error: 'فشل في رفع الصوت', details: error.message });
         }
 
-        // ✅ توليد رابط الملف بعد الرفع
         audioUrl = `${process.env.SUPABASE_URL}/storage/v1/object/public/voice/${fileName}`;
       }
 
-      // ✅ إنشاء الرسالة وتخزينها
       const newMessage = new Message({ sender, receiver, text, audioUrl });
       await newMessage.save();
 
-      // ✅ إرسال للطرف المستقبل
       io.to(receiver).emit('receiveMessage', newMessage);
       socket.emit('messageSent', { success: true, message: newMessage });
 
