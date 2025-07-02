@@ -1,4 +1,5 @@
 const fs = require('fs');
+const path = require('path');
 const { createClient } = require('@supabase/supabase-js');
 const Message = require('../models/Message');
 const Chat = require('../models/Chats');
@@ -21,36 +22,50 @@ exports.sendMessage = async (req, res) => {
 
     let audioUrl = null;
 
-    // ✅ رفع الصوت إلى Supabase إن وُجد ملف صوتي
     if (req.file) {
-  const filePath = req.file.path;
-  const fileBuffer = fs.readFileSync(filePath);
-  console.log('MIME Type:', req.file.mimetype);
-  // 🧼 تنظيف الاسم من الرموز غير المسموحة
-  const original = req.file.originalname.replace(/[^a-zA-Z0-9_.-]/g, '_');
-  const fileName = `${Date.now()}_${original}`;
+      const filePath = req.file.path;
+      const fileBuffer = fs.readFileSync(filePath);
 
-  const { data, error } = await supabase.storage
-    .from('voice')
-    .upload(fileName, fileBuffer, {
-      contentType: req.file.mimetype,
-      upsert: true,
-    });
+      // تنظيف اسم الملف من الرموز غير المسموحة
+      const original = req.file.originalname.replace(/[^a-zA-Z0-9_.-]/g, '_');
+      const fileName = `${Date.now()}_${original}`;
 
-  fs.unlinkSync(filePath); // حذف الملف بعد الرفع
+      // تحديد نوع المحتوى بناءً على امتداد الملف
+      const mimeTypes = {
+        '.aac': 'audio/aac',
+        '.mp3': 'audio/mpeg',
+        '.wav': 'audio/wav',
+        '.ogg': 'audio/ogg',
+        '.m4a': 'audio/mp4',
+      };
 
-  if (error) {
-    return res.status(500).json({ error: 'فشل في رفع الصوت', details: error.message });
-  }
+      const ext = path.extname(req.file.originalname).toLowerCase();
+      const contentType = mimeTypes[ext] || req.file.mimetype || 'application/octet-stream';
 
-  audioUrl = `${process.env.SUPABASE_URL}/storage/v1/object/public/voice/${fileName}`;
+      console.log('file extension:', ext);
+      console.log('contentType used:', contentType);
+
+      const { data, error } = await supabase.storage
+        .from('voice')
+        .upload(fileName, fileBuffer, {
+          contentType: contentType,
+          upsert: true,
+        });
+
+      fs.unlinkSync(filePath); // حذف الملف بعد الرفع
+
+      if (error) {
+        return res.status(500).json({ error: 'فشل في رفع الصوت', details: error.message });
+      }
+
+      audioUrl = `${process.env.SUPABASE_URL}/storage/v1/object/public/voice/${fileName}`;
     }
 
-    // ✅ إنشاء الرسالة
+    // إنشاء الرسالة
     const message = new Message({ sender, receiver, text, audioUrl });
     await message.save();
 
-    // ✅ تحديث أو إنشاء المحادثة
+    // تحديث أو إنشاء المحادثة
     let chat = await Chat.findOne({ users: { $all: [sender, receiver] } });
     const latestMessage = text || '🎤 رسالة صوتية';
 
@@ -76,7 +91,6 @@ exports.sendMessage = async (req, res) => {
     });
   }
 };
-
 // 🔵 جلب الرسائل بين مستخدمين
 exports.getMessages = async (req, res) => {
   try {
