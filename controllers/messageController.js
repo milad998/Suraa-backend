@@ -25,7 +25,7 @@ exports.sendMessage = async (req, res) => {
     if (req.file) {
   const filePath = req.file.path;
   const fileBuffer = fs.readFileSync(filePath);
-
+  console.log('MIME Type:', req.file.mimetype);
   // 🧼 تنظيف الاسم من الرموز غير المسموحة
   const original = req.file.originalname.replace(/[^a-zA-Z0-9_.-]/g, '_');
   const fileName = `${Date.now()}_${original}`;
