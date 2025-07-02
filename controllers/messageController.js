@@ -23,24 +23,27 @@ exports.sendMessage = async (req, res) => {
 
     // ✅ رفع الصوت إلى Supabase إن وُجد ملف صوتي
     if (req.file) {
-      const filePath = req.file.path;
-      const fileBuffer = fs.readFileSync(filePath);
-      const fileName = `${Date.now()}_${req.file.originalname}`; // ✅ بدون "voice/"
+  const filePath = req.file.path;
+  const fileBuffer = fs.readFileSync(filePath);
 
-      const { data, error } = await supabase.storage
-        .from('voice') // ✅ اسم الباكت الصحيح
-        .upload(fileName, fileBuffer, {
-          contentType: req.file.mimetype,
-          upsert: true,
-        });
+  // 🧼 تنظيف الاسم من الرموز غير المسموحة
+  const original = req.file.originalname.replace(/[^a-zA-Z0-9_.-]/g, '_');
+  const fileName = `${Date.now()}_${original}`;
 
-      fs.unlinkSync(filePath); // حذف الملف من السيرفر بعد الرفع
+  const { data, error } = await supabase.storage
+    .from('voice')
+    .upload(fileName, fileBuffer, {
+      contentType: req.file.mimetype,
+      upsert: true,
+    });
 
-      if (error) {
-        return res.status(500).json({ error: 'فشل في رفع الصوت', details: error.message });
-      }
+  fs.unlinkSync(filePath); // حذف الملف بعد الرفع
 
-    audioUrl = `${process.env.SUPABASE_URL}/storage/v1/object/public/voice/${fileName}`;
+  if (error) {
+    return res.status(500).json({ error: 'فشل في رفع الصوت', details: error.message });
+  }
+
+  audioUrl = `${process.env.SUPABASE_URL}/storage/v1/object/public/voice/${fileName}`;
     }
 
     // ✅ إنشاء الرسالة
