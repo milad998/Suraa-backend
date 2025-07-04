@@ -34,12 +34,12 @@ export default function ChatsPage() {
   const fetchChats = async () => {
     try {
       const token = localStorage.getItem("token");
-      const res = await axios.get("/api/chats", {
+      const res = await axios.get("http://localhost:8000/api/chats/", {
         headers: { Authorization: `Bearer ${token}` },
       });
       setChats(res.data);
     } catch (err) {
-      console.error("❌ Error fetching chats:", err.message);
+      console.log("❌ Error fetching chats:", err.message);
     }
   };
 
