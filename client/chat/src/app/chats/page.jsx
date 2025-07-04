@@ -49,8 +49,7 @@ export default function ChatsPage() {
 
   return (
     <div className="container py-5" dir="rtl">
-      <h2 className="mb-4 text-center">📱 قائمة المحادثات</h2>
-
+      
       {chats.map((chat) => {
         const otherUser = chat.users.find((u) => u._id !== userId);
         return (
