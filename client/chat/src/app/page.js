@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import chat_logo from "@/public/4712035.png";
+import chat_logo from "../../public/4712035.png";
 
 export default function Home() {
   return (
