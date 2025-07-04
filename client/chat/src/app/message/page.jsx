@@ -1,3 +1,4 @@
+"use client"
 import { useEffect, useRef, useState } from 'react'; import { io } from 'socket.io-client'; import axios from 'axios';
 
 const socket = io(process.env.NEXT_PUBLIC_SOCKET_URL || 'http://localhost:5000', { autoConnect: false, });
@@ -34,7 +35,7 @@ return () => {
 
 }, [receiverId]);
 
-const fetchMessages = async () => { try { const token = localStorage.getItem('token'); const res = await axios.get(/api/messages/${receiverId}, { headers: { Authorization: Bearer ${token} }, }); setMessages(res.data); } catch (err) { console.error('❌ Error fetching messages:', err.message); } };
+const fetchMessages = async () => { try { const token = localStorage.getItem('token'); const res = await axios.get(`http://localhost:8000/api/messages/${receiverId}`, { headers: { Authorization: Bearer ${token} }, }); setMessages(res.data); } catch (err) { console.error('❌ Error fetching messages:', err.message); } };
 
 const handleSend = () => { if (!text.trim()) return; const newMsg = { sender: userId, receiver: receiverId, text, };
 
