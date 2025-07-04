@@ -19,7 +19,7 @@ export default function ChatComponent({ receiverId }) {
 
   const scrollRef = useRef(null);
   const userId = getCurrentUserId();
-
+  console.log(receiverId)
   useEffect(() => {
     if (!userId || !receiverId) return;
 
