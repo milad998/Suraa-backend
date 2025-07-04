@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import chat_logo from "@/public/4712035.png";
 
 export default function Home() {
   return (
@@ -9,7 +10,7 @@ export default function Home() {
       <div className="row justify-content-center align-items-center min-vh-100">
         <div className="col-md-8 text-center bg-white p-5 rounded shadow">
           <Image
-            src="/chat-illustration.svg"
+            src={chat_logo}
             alt="Chat Illustration"
             width={200}
             height={200}
