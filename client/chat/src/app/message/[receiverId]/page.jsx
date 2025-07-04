@@ -59,14 +59,29 @@ export default function ChatPage({ receiverId }) {
     }
   };
 
-  const handleSend = () => {
+  const handleSend = async () => {
     if (!text.trim()) return;
 
-    const newMsg = { sender: userId, receiver: receiverId, text };
-    socket.emit("sendMessage", newMsg);
-    setMessages((prev) => [...prev, newMsg]);
-    setText("");
-    socket.emit("userStopTyping", userId);
+    const token = localStorage.getItem("token");
+    const formData = new FormData();
+    formData.append("receiver", receiverId);
+    formData.append("text", text);
+
+    try {
+      const res = await axios.post("http://localhost:8000/api/messages", formData, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "multipart/form-data",
+        },
+      });
+
+      socket.emit("sendMessage", res.data);
+      setMessages((prev) => [...prev, res.data]);
+      setText("");
+      socket.emit("userStopTyping", userId);
+    } catch (err) {
+      console.error("❌ Error sending message:", err.message);
+    }
   };
 
   const handleTyping = (e) => {
@@ -95,21 +110,28 @@ export default function ChatPage({ receiverId }) {
 
       recorder.onstop = async () => {
         const blob = new Blob(audioChunks, { type: "audio/webm" });
-        const reader = new FileReader();
+        const file = new File([blob], `voice_${Date.now()}.webm`, { type: "audio/webm" });
 
-        reader.onloadend = () => {
-          const base64Audio = reader.result.split(",")[1];
+        const formData = new FormData();
+        formData.append("receiver", receiverId);
+        formData.append("audio", file);
 
-          socket.emit("sendMessage", {
-            sender: userId,
-            receiver: receiverId,
-            audioBase64: base64Audio,
-            audioName: `voice_${Date.now()}.webm`,
-            audioType: "audio/webm",
+        const token = localStorage.getItem("token");
+
+        try {
+          const res = await axios.post("http://localhost:8000/api/messages", formData, {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "multipart/form-data",
+            },
           });
-        };
 
-        reader.readAsDataURL(blob);
+          socket.emit("sendMessage", res.data);
+          setMessages((prev) => [...prev, res.data]);
+        } catch (err) {
+          console.error("❌ Error sending audio:", err.message);
+        }
+
         setAudioChunks([]);
       };
 
@@ -188,4 +210,4 @@ function getCurrentUserId() {
   } catch {
     return null;
   }
-                  }
+}
