@@ -1,4 +1,5 @@
 "use client";
+
 import { useEffect, useState } from "react";
 import { io } from "socket.io-client";
 import axios from "axios";
@@ -55,7 +56,7 @@ export default function ChatsPage() {
         return (
           <div
             key={chat._id}
-            onClick={() => router.push(`/message/${otherUser._id}`)} // ✅ توجيه
+            onClick={() => router.push(`/message?receiverId=${otherUser._id}`)} // ✅ توجيه
             className="list-group-item d-flex justify-content-between align-items-center"
             style={{ cursor: "pointer" }} // ✅ شكل المؤشر
           >
