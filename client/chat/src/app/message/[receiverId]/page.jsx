@@ -2,6 +2,7 @@
 import { useEffect, useRef, useState } from "react";
 import { io } from "socket.io-client";
 import axios from "axios";
+import { useSearchParams } from 'next/navigation'
 
 const socket = io(process.env.NEXT_PUBLIC_SOCKET_URL || "http://localhost:5000", {
   autoConnect: false,
@@ -15,7 +16,8 @@ export default function ChatPage({ receiverId }) {
   const [recording, setRecording] = useState(false);
   const [mediaRecorder, setMediaRecorder] = useState(null);
   const [audioChunks, setAudioChunks] = useState([]);
-
+  const x = useSearchParams();
+  const receiverId = x.get("receiverId");
   const scrollRef = useRef(null);
   const userId = getCurrentUserId();
 
