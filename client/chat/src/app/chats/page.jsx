@@ -3,33 +3,44 @@ import { useEffect, useState } from "react";
 import { io } from "socket.io-client";
 import axios from "axios";
 
-const socket = io(process.env.NEXT_PUBLIC_SOCKET_URL || "http://localhost:5000");
+// socket خارج المكون لضمان عدم إنشاء اتصال جديد في كل رندر
+const socket = io(process.env.NEXT_PUBLIC_SOCKET_URL || "http://localhost:5000", {
+  autoConnect: false,
+});
 
 export default function ChatsPage() {
   const [chats, setChats] = useState([]);
   const [onlineUsers, setOnlineUsers] = useState([]);
-
   const userId = getCurrentUserId();
 
   useEffect(() => {
-    // الاتصال والانضمام لغرفة المستخدم
+    if (!userId) return;
+
+    socket.connect(); // الاتصال فقط عند وجود userId
     socket.emit("join", userId);
 
     socket.on("onlineUsers", (users) => {
-      setOnlineUsers(users); // تحديث قائمة المتصلين
+      setOnlineUsers(users);
     });
 
     fetchChats();
 
-    return () => socket.disconnect();
-  }, []);
+    return () => {
+      socket.off("onlineUsers"); // إيقاف الاستماع
+      socket.disconnect();
+    };
+  }, [userId]);
 
   const fetchChats = async () => {
-    const token = localStorage.getItem("token");
-    const res = await axios.get("/api/chats", {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    setChats(res.data);
+    try {
+      const token = localStorage.getItem("token");
+      const res = await axios.get("/api/chats", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setChats(res.data);
+    } catch (err) {
+      console.error("❌ Error fetching chats:", err.message);
+    }
   };
 
   const isUserOnline = (id) => onlineUsers.includes(id);
@@ -51,9 +62,9 @@ export default function ChatsPage() {
               <small className="text-muted">{chat.lastMessage || "بدون رسائل"}</small>
             </div>
             <div className="d-flex align-items-center gap-2">
-              {/* 🟢 نقطة الحالة */}
+              {/* ✅ نقطة الحالة */}
               <span
-                className={`rounded-circle`}
+                className="rounded-circle"
                 style={{
                   width: "12px",
                   height: "12px",
@@ -69,12 +80,15 @@ export default function ChatsPage() {
   );
 }
 
+// ✅ فك الـ JWT للحصول على userId
 function getCurrentUserId() {
   try {
     const token = localStorage.getItem("token");
+    if (!token) return null;
+
     const payload = JSON.parse(atob(token.split(".")[1]));
     return payload.id;
   } catch {
     return null;
   }
-      }
+              }
