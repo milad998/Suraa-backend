@@ -26,7 +26,10 @@ export default function ChatPage({ receiverId }) {
     socket.emit("join", userId);
 
     socket.on("receiveMessage", (msg) => {
-      setMessages((prev) => [...prev, msg]);
+      setMessages((prev) => {
+        if (prev.some((m) => m._id === msg._id)) return prev;
+        return [...prev, msg];
+      });
     });
 
     socket.on("userTyping", (typingUserId) => {
@@ -160,7 +163,7 @@ export default function ChatPage({ receiverId }) {
 
       <div className="border p-3 mb-2" style={{ height: "400px", overflowY: "auto" }}>
         {messages.map((msg, idx) => (
-          <div key={idx} className={`mb-2 ${msg.sender === userId ? "text-end" : "text-start"}`}>
+          <div key={msg._id || idx} className={`mb-2 ${msg.sender === userId ? "text-end" : "text-start"}`}>
             <div
               className={`p-2 rounded ${
                 msg.sender === userId ? "bg-primary text-white" : "bg-light"
@@ -210,4 +213,4 @@ function getCurrentUserId() {
   } catch {
     return null;
   }
-}
+        }
