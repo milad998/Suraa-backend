@@ -8,7 +8,8 @@ const socket = io(process.env.NEXT_PUBLIC_SOCKET_URL || "http://localhost:5000",
   autoConnect: false,
 });
 
-export default function ChatComponent({ receiverId }) {
+export default function ChatComponent({ params }) {
+  const receiverId = params.receiverId
   const [messages, setMessages] = useState([]);
   const [text, setText] = useState("");
   const [isTyping, setIsTyping] = useState(false);
