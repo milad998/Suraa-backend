@@ -3,13 +3,12 @@
 import { useEffect, useRef, useState } from "react";
 import { io } from "socket.io-client";
 import axios from "axios";
-import { useRouter } from 'next/navigation';
 
 const socket = io(process.env.NEXT_PUBLIC_SOCKET_URL || "http://localhost:5000", {
   autoConnect: false,
 });
 
-export default function ChatPage() {
+export default function ChatComponent({ receiverId }) {
   const [messages, setMessages] = useState([]);
   const [text, setText] = useState("");
   const [isTyping, setIsTyping] = useState(false);
@@ -17,9 +16,6 @@ export default function ChatPage() {
   const [recording, setRecording] = useState(false);
   const [mediaRecorder, setMediaRecorder] = useState(null);
   const [audioChunks, setAudioChunks] = useState([]);
-
-  
-  const receiverId = useRouter().query.receiverId
 
   const scrollRef = useRef(null);
   const userId = getCurrentUserId();
@@ -220,4 +216,4 @@ function getCurrentUserId() {
   } catch {
     return null;
   }
-    }
+      }
