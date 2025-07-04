@@ -9,7 +9,7 @@ const socket = io(process.env.NEXT_PUBLIC_SOCKET_URL || "http://localhost:5000",
 });
 
 export default function ChatComponent({ params }) {
-  const receiverId = params.receiverId
+  const receiverId = params.receiverId;
   const [messages, setMessages] = useState([]);
   const [text, setText] = useState("");
   const [isTyping, setIsTyping] = useState(false);
@@ -17,10 +17,9 @@ export default function ChatComponent({ params }) {
   const [recording, setRecording] = useState(false);
   const [mediaRecorder, setMediaRecorder] = useState(null);
   const [audioChunks, setAudioChunks] = useState([]);
-
   const scrollRef = useRef(null);
   const userId = getCurrentUserId();
-  console.log(receiverId)
+
   useEffect(() => {
     if (!userId || !receiverId) return;
 
@@ -124,7 +123,7 @@ export default function ChatComponent({ params }) {
         const token = localStorage.getItem("token");
 
         try {
-          const res = await axios.post("http://localhost:8000/api/messages", formData, {
+          const res = await axios.post("https://peppered-lace-newsprint.glitch.me/api/messages", formData, {
             headers: {
               Authorization: `Bearer ${token}`,
               "Content-Type": "multipart/form-data",
@@ -160,50 +159,73 @@ export default function ChatComponent({ params }) {
   }, [messages]);
 
   return (
-    <div className="container py-4" dir="rtl">
-      <h4 className="text-center mb-3">🗨️ محادثة</h4>
+    <div className="d-flex flex-column justify-content-between" dir="rtl" style={{ height: "100vh", background: "#e5ddd5" }}>
+      <div className="p-3 text-center bg-success text-white shadow">🗨️ محادثة</div>
 
-      <div className="border p-3 mb-2" style={{ height: "400px", overflowY: "auto" }}>
-        {messages.map((msg, idx) => (
-          <div
-            key={msg._id || idx}
-            className={`mb-2 ${msg.sender === userId ? "text-end" : "text-start"}`}
-          >
-            <div
-              className={`p-2 rounded ${
-                msg.sender === userId ? "bg-primary text-white" : "bg-light"
-              }`}
-              style={{ display: "inline-block", maxWidth: "75%" }}
-            >
-              {msg.audioUrl ? (
-                <audio controls src={msg.audioUrl}></audio>
-              ) : (
-                msg.text || "🎤 رسالة صوتية"
-              )}
+      <div className="flex-grow-1 p-3 overflow-auto">
+        {messages.map((msg, idx) => {
+          const isMine = msg.sender === userId;
+          const time = new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+          let statusIcon = "";
+          if (isMine) {
+            if (msg.status === "read") statusIcon = "🟦✓✓";
+            else if (msg.status === "delivered") statusIcon = "✓✓";
+            else statusIcon = "✅";
+          }
+
+          return (
+            <div key={msg._id || idx} className={`d-flex mb-2 ${isMine ? "justify-content-end" : "justify-content-start"}`}>
+              <div
+                className={`p-2 shadow-sm ${isMine ? "bg-success text-white" : "bg-white text-dark"}`}
+                style={{
+                  maxWidth: "75%",
+                  borderRadius: "16px",
+                  borderBottomLeftRadius: isMine ? "16px" : "4px",
+                  borderBottomRightRadius: isMine ? "4px" : "16px",
+                  position: "relative",
+                }}
+              >
+                {msg.audioUrl ? (
+                  <audio controls src={msg.audioUrl}></audio>
+                ) : (
+                  <div>{msg.text || "🎤 رسالة صوتية"}</div>
+                )}
+                <div
+                  className="text-end text-white-50 small mt-1"
+                  style={{ fontSize: "0.75rem", opacity: 0.8 }}
+                >
+                  {time} {isMine && <span className="ms-1">{statusIcon}</span>}
+                </div>
+              </div>
             </div>
-          </div>
-        ))}
-        {typingStatus && <div className="text-muted">...يكتب الآن</div>}
+          );
+        })}
+
+        {typingStatus && <div className="text-muted mb-2">...يكتب الآن</div>}
         <div ref={scrollRef}></div>
       </div>
 
-      <div className="input-group">
-        <input
-          type="text"
-          className="form-control"
-          placeholder="اكتب رسالتك هنا..."
-          value={text}
-          onChange={handleTyping}
-        />
-        <button className="btn btn-success" onClick={handleSend}>
-          إرسال
-        </button>
-        <button
-          className={`btn ${recording ? "btn-danger" : "btn-secondary"}`}
-          onClick={recording ? stopRecording : startRecording}
-        >
-          {recording ? "⏹️ إيقاف" : "🎙️ تسجيل"}
-        </button>
+      <div className="p-2 bg-white border-top">
+        <div className="input-group">
+          <input
+            type="text"
+            className="form-control rounded-start-pill"
+            placeholder="اكتب رسالة..."
+            value={text}
+            onChange={handleTyping}
+            style={{ borderTopLeftRadius: 20, borderBottomLeftRadius: 20 }}
+          />
+          <button className="btn btn-outline-success" onClick={handleSend}>
+            📤
+          </button>
+          <button
+            className={`btn ${recording ? "btn-danger" : "btn-secondary"}`}
+            onClick={recording ? stopRecording : startRecording}
+          >
+            {recording ? "⏹️" : "🎙️"}
+          </button>
+        </div>
       </div>
     </div>
   );
@@ -217,4 +239,4 @@ function getCurrentUserId() {
   } catch {
     return null;
   }
-      }
+    }
