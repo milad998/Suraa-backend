@@ -49,7 +49,7 @@ export default function ChatPage({ receiverId }) {
       socket.disconnect();
     };
   }, [receiverId]);
-
+  console.log(receiverId)
   const fetchMessages = async () => {
     try {
       const token = localStorage.getItem("token");
