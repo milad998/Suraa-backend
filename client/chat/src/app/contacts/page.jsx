@@ -11,7 +11,7 @@ export default function SearchContacts() {
     try {
       const token = localStorage.getItem("token");
       const res = await axios.post(
-        "http://localhost:8000/api/users/search-contacts",
+        "https://peppered-lace-newsprint.glitch.me/api/users/search-contacts",
         { phones: phones.split(",").map((p) => p.trim()) },
         { headers: { Authorization: `Bearer ${token}` } }
       );
