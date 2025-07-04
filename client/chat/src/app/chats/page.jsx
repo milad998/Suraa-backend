@@ -1,9 +1,9 @@
-"use client"
+"use client";
 import { useEffect, useState } from "react";
 import { io } from "socket.io-client";
 import axios from "axios";
+import { useRouter } from "next/navigation"; // ✅ جديد
 
-// socket خارج المكون لضمان عدم إنشاء اتصال جديد في كل رندر
 const socket = io(process.env.NEXT_PUBLIC_SOCKET_URL || "http://localhost:5000", {
   autoConnect: false,
 });
@@ -12,11 +12,12 @@ export default function ChatsPage() {
   const [chats, setChats] = useState([]);
   const [onlineUsers, setOnlineUsers] = useState([]);
   const userId = getCurrentUserId();
+  const router = useRouter(); // ✅ جديد
 
   useEffect(() => {
     if (!userId) return;
 
-    socket.connect(); // الاتصال فقط عند وجود userId
+    socket.connect();
     socket.emit("join", userId);
 
     socket.on("onlineUsers", (users) => {
@@ -26,7 +27,7 @@ export default function ChatsPage() {
     fetchChats();
 
     return () => {
-      socket.off("onlineUsers"); // إيقاف الاستماع
+      socket.off("onlineUsers");
       socket.disconnect();
     };
   }, [userId]);
@@ -54,7 +55,9 @@ export default function ChatsPage() {
         return (
           <div
             key={chat._id}
+            onClick={() => router.push(`/message/${otherUser._id}`)} // ✅ توجيه
             className="list-group-item d-flex justify-content-between align-items-center"
+            style={{ cursor: "pointer" }} // ✅ شكل المؤشر
           >
             <div>
               <strong>{otherUser?.username || "مستخدم"}</strong>
@@ -62,7 +65,6 @@ export default function ChatsPage() {
               <small className="text-muted">{chat.lastMessage || "بدون رسائل"}</small>
             </div>
             <div className="d-flex align-items-center gap-2">
-              {/* ✅ نقطة الحالة */}
               <span
                 className="rounded-circle"
                 style={{
@@ -80,15 +82,14 @@ export default function ChatsPage() {
   );
 }
 
-// ✅ فك الـ JWT للحصول على userId
+// ✅ فك التوكن للحصول على ID
 function getCurrentUserId() {
   try {
     const token = localStorage.getItem("token");
     if (!token) return null;
-
     const payload = JSON.parse(atob(token.split(".")[1]));
     return payload.id;
   } catch {
     return null;
   }
-              }
+                }
