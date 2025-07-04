@@ -20,7 +20,7 @@ export default function ChatPage({ receiverId }) {
   const userId = getCurrentUserId();
 
   useEffect(() => {
-    if (!userId || !receiverId) return;
+    if (!userId || !receiver) return;
 
     socket.connect();
     socket.emit("join", userId);
@@ -33,11 +33,11 @@ export default function ChatPage({ receiverId }) {
     });
 
     socket.on("userTyping", (typingUserId) => {
-      if (typingUserId === receiverId) setTypingStatus(true);
+      if (typingUserId === receiver) setTypingStatus(true);
     });
 
     socket.on("userStopTyping", (typingUserId) => {
-      if (typingUserId === receiverId) setTypingStatus(false);
+      if (typingUserId === receiver) setTypingStatus(false);
     });
 
     fetchMessages();
@@ -48,12 +48,12 @@ export default function ChatPage({ receiverId }) {
       socket.off("userStopTyping");
       socket.disconnect();
     };
-  }, [receiverId]);
+  }, [receiver]);
 
   const fetchMessages = async () => {
     try {
       const token = localStorage.getItem("token");
-      const res = await axios.get(`http://localhost:8000/api/messages/${receiverId}`, {
+      const res = await axios.get(`http://localhost:8000/api/messages/${receiver}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setMessages(res.data);
@@ -116,7 +116,7 @@ export default function ChatPage({ receiverId }) {
         const file = new File([blob], `voice_${Date.now()}.webm`, { type: "audio/webm" });
 
         const formData = new FormData();
-        formData.append("receiver", receiverId);
+        formData.append("receiver", receiver);
         formData.append("audio", file);
 
         const token = localStorage.getItem("token");
