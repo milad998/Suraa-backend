@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { io } from "socket.io-client";
 import axios from "axios";
-import { useRouter } from "next/navigation"; // ✅ جديد
+import { useRouter } from "next/navigation";
 
 const socket = io(process.env.NEXT_PUBLIC_SOCKET_URL || "http://localhost:5000", {
   autoConnect: false,
@@ -13,7 +13,7 @@ export default function ChatsPage() {
   const [chats, setChats] = useState([]);
   const [onlineUsers, setOnlineUsers] = useState([]);
   const userId = getCurrentUserId();
-  const router = useRouter(); // ✅ جديد
+  const router = useRouter();
 
   useEffect(() => {
     if (!userId) return;
@@ -56,9 +56,9 @@ export default function ChatsPage() {
         return (
           <div
             key={chat._id}
-            onClick={() => router.push(`/message?receiverId=${otherUser._id}`)} // ✅ توجيه
+            onClick={() => router.push(`/message/${otherUser._id}`)} // تم التعديل هنا
             className="list-group-item d-flex justify-content-between align-items-center"
-            style={{ cursor: "pointer" }} // ✅ شكل المؤشر
+            style={{ cursor: "pointer" }}
           >
             <div>
               <strong>{otherUser?.username || "مستخدم"}</strong>
@@ -83,7 +83,7 @@ export default function ChatsPage() {
   );
 }
 
-// ✅ فك التوكن للحصول على ID
+// فك التوكن للحصول على معرف المستخدم الحالي
 function getCurrentUserId() {
   try {
     const token = localStorage.getItem("token");
@@ -93,4 +93,4 @@ function getCurrentUserId() {
   } catch {
     return null;
   }
-                }
+              }
