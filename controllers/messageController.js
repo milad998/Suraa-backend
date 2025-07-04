@@ -94,13 +94,13 @@ exports.sendMessage = async (req, res) => {
 // 🔵 جلب الرسائل بين مستخدمين
 exports.getMessages = async (req, res) => {
   try {
-    const { user2 } = req.params;
+    const { receiver } = req.params;
     const user1 = req.user.id;
 
     const messages = await Message.find({
       $or: [
-        { sender: user1, receiver: user2 },
-        { sender: user2, receiver: user1 },
+        { sender: user1, receiver: receiver },
+        { sender: receiver, receiver: user1 },
       ]
     }).sort({ timestamp: 1 });
 
