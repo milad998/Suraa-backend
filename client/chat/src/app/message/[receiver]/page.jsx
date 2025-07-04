@@ -20,7 +20,7 @@ export default function ChatPage({ receiverId }) {
   const userId = getCurrentUserId();
 
   useEffect(() => {
-    if (!userId || !receiver) return;
+    if (!userId || !receiverId) return;
 
     socket.connect();
     socket.emit("join", userId);
@@ -33,11 +33,11 @@ export default function ChatPage({ receiverId }) {
     });
 
     socket.on("userTyping", (typingUserId) => {
-      if (typingUserId === receiver) setTypingStatus(true);
+      if (typingUserId === receiverId) setTypingStatus(true);
     });
 
     socket.on("userStopTyping", (typingUserId) => {
-      if (typingUserId === receiver) setTypingStatus(false);
+      if (typingUserId === receiverId) setTypingStatus(false);
     });
 
     fetchMessages();
@@ -48,12 +48,12 @@ export default function ChatPage({ receiverId }) {
       socket.off("userStopTyping");
       socket.disconnect();
     };
-  }, [receiver]);
+  }, [receiverId]);
 
   const fetchMessages = async () => {
     try {
       const token = localStorage.getItem("token");
-      const res = await axios.get(`http://localhost:8000/api/messages/${receiver}`, {
+      const res = await axios.get(`http://localhost:8000/api/messages/${receiverId}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setMessages(res.data);
@@ -116,7 +116,7 @@ export default function ChatPage({ receiverId }) {
         const file = new File([blob], `voice_${Date.now()}.webm`, { type: "audio/webm" });
 
         const formData = new FormData();
-        formData.append("receiver", receiver);
+        formData.append("receiver", receiverId);
         formData.append("audio", file);
 
         const token = localStorage.getItem("token");
@@ -163,7 +163,10 @@ export default function ChatPage({ receiverId }) {
 
       <div className="border p-3 mb-2" style={{ height: "400px", overflowY: "auto" }}>
         {messages.map((msg, idx) => (
-          <div key={msg._id || idx} className={`mb-2 ${msg.sender === userId ? "text-end" : "text-start"}`}>
+          <div
+            key={msg._id || idx}
+            className={`mb-2 ${msg.sender === userId ? "text-end" : "text-start"}`}
+          >
             <div
               className={`p-2 rounded ${
                 msg.sender === userId ? "bg-primary text-white" : "bg-light"
@@ -213,4 +216,4 @@ function getCurrentUserId() {
   } catch {
     return null;
   }
-        }
+}
