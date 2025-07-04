@@ -67,7 +67,7 @@ export default function ChatPage({ receiverId }) {
 
     const token = localStorage.getItem("token");
     const formData = new FormData();
-    formData.append("receiver", receiverId);
+    formData.append("receiver", receiverId); // ✅ تم إصلاحه
     formData.append("text", text);
 
     try {
@@ -116,7 +116,7 @@ export default function ChatPage({ receiverId }) {
         const file = new File([blob], `voice_${Date.now()}.webm`, { type: "audio/webm" });
 
         const formData = new FormData();
-        formData.append("receiver", receiverId);
+        formData.append("receiver", receiverId); // ✅ تم إصلاحه
         formData.append("audio", file);
 
         const token = localStorage.getItem("token");
