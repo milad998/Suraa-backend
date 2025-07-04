@@ -10,7 +10,7 @@ export default function RegisterPage() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const res = await axios.post("http://localhost:8000/api/users/register", form);
+      const res = await axios.post("https://peppered-lace-newsprint.glitch.me/api/users/register", form);
       setMessage("✅ تم التسجيل بنجاح");
     } catch (err) {
       setMessage("❌ رقم الهاتف مستخدم بالفعل");
