@@ -55,7 +55,7 @@ export default function ChatPage({ receiverId }) {
       });
       setMessages(res.data);
     } catch (err) {
-      console.error("❌ Error fetching messages:", err.message);
+      console.log("❌ Error fetching messages:", err.message);
     }
   };
 
@@ -80,7 +80,7 @@ export default function ChatPage({ receiverId }) {
       setText("");
       socket.emit("userStopTyping", userId);
     } catch (err) {
-      console.error("❌ Error sending message:", err.message);
+      console.log("❌ Error sending message:", err.message);
     }
   };
 
@@ -129,7 +129,7 @@ export default function ChatPage({ receiverId }) {
           socket.emit("sendMessage", res.data);
           setMessages((prev) => [...prev, res.data]);
         } catch (err) {
-          console.error("❌ Error sending audio:", err.message);
+          console.log("❌ Error sending audio:", err.message);
         }
 
         setAudioChunks([]);
@@ -139,7 +139,7 @@ export default function ChatPage({ receiverId }) {
       recorder.start();
       setRecording(true);
     } catch (err) {
-      console.error("🎙️ Error starting recording:", err);
+      console.log("🎙️ Error starting recording:", err);
     }
   };
 
