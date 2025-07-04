@@ -2,13 +2,13 @@
 import { useEffect, useRef, useState } from "react";
 import { io } from "socket.io-client";
 import axios from "axios";
-import { useSearchParams } from 'next/navigation'
+import { useSearchParams } from 'next/navigation';
 
 const socket = io(process.env.NEXT_PUBLIC_SOCKET_URL || "http://localhost:5000", {
   autoConnect: false,
 });
 
-export default function ChatPage({ receiverId }) {
+export default function ChatPage() {
   const [messages, setMessages] = useState([]);
   const [text, setText] = useState("");
   const [isTyping, setIsTyping] = useState(false);
@@ -16,8 +16,10 @@ export default function ChatPage({ receiverId }) {
   const [recording, setRecording] = useState(false);
   const [mediaRecorder, setMediaRecorder] = useState(null);
   const [audioChunks, setAudioChunks] = useState([]);
+
   const x = useSearchParams();
   const receiverId = x.get("receiverId");
+
   const scrollRef = useRef(null);
   const userId = getCurrentUserId();
 
@@ -51,7 +53,7 @@ export default function ChatPage({ receiverId }) {
       socket.disconnect();
     };
   }, [receiverId]);
-  console.log(receiverId)
+
   const fetchMessages = async () => {
     try {
       const token = localStorage.getItem("token");
@@ -69,7 +71,7 @@ export default function ChatPage({ receiverId }) {
 
     const token = localStorage.getItem("token");
     const formData = new FormData();
-    formData.append("receiver", receiverId); // ✅ تم إصلاحه
+    formData.append("receiver", receiverId);
     formData.append("text", text);
 
     try {
@@ -118,7 +120,7 @@ export default function ChatPage({ receiverId }) {
         const file = new File([blob], `voice_${Date.now()}.webm`, { type: "audio/webm" });
 
         const formData = new FormData();
-        formData.append("receiver", receiverId); // ✅ تم إصلاحه
+        formData.append("receiver", receiverId);
         formData.append("audio", file);
 
         const token = localStorage.getItem("token");
@@ -218,4 +220,4 @@ function getCurrentUserId() {
   } catch {
     return null;
   }
-}
+        }
