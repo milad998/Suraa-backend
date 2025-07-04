@@ -1,5 +1,7 @@
 "use client";
 import { useEffect } from "react";
+import chat_logo from "../../public/4712035.png";
+import Image from "next/image";
 
 export default function Navbar() {
   useEffect(() => {
@@ -11,9 +13,14 @@ export default function Navbar() {
     <nav className="navbar navbar-expand-lg navbar-light bg-light" dir="rtl">
       <div className="container">
         {/* الشعار */}
-        <a className="navbar-brand fw-bold text-primary" href="#">
-          💬 شات ميلاد
-        </a>
+        <Image
+            src={chat_logo}
+            alt="Chat Illustration"
+            width={50}
+            height={50}
+            className="mb-4"
+            priority
+          />
 
         {/* زر القائمة للجوال */}
         <button
