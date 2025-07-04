@@ -55,7 +55,7 @@ export default function ChatComponent({ params }) {
   const fetchMessages = async () => {
     try {
       const token = localStorage.getItem("token");
-      const res = await axios.get(`http://localhost:8000/api/messages/${receiverId}`, {
+      const res = await axios.get(`https://peppered-lace-newsprint.glitch.me/api/messages/${receiverId}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setMessages(res.data);
@@ -73,7 +73,7 @@ export default function ChatComponent({ params }) {
     formData.append("text", text);
 
     try {
-      const res = await axios.post("http://localhost:8000/api/messages", formData, {
+      const res = await axios.post("https://peppered-lace-newsprint.glitch.me/api/messages", formData, {
         headers: {
           Authorization: `Bearer ${token}`,
           "Content-Type": "multipart/form-data",
