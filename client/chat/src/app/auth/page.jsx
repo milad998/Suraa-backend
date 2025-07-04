@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import chat_logo from "../../public/4712035.png";
 
 export default function AuthLandingPage() {
   return (
@@ -8,7 +9,7 @@ export default function AuthLandingPage() {
       <div className="row justify-content-center align-items-center min-vh-100">
         <div className="col-md-8 text-center bg-white p-5 rounded shadow-lg">
           <img
-            src="/chat-illustration.svg"
+            src={chat_logo}
             alt="تطبيق سرى شات"
             className="mb-4"
             style={{ maxWidth: "180px" }}
