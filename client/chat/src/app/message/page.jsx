@@ -1,14 +1,17 @@
 'use client';
 import { useEffect, useRef, useState } from "react";
+import { useSearchParams } from 'next/navigation';
 import { io } from "socket.io-client";
 import axios from "axios";
-import { useSearchParams } from 'next/navigation';
 
 const socket = io(process.env.NEXT_PUBLIC_SOCKET_URL || "http://localhost:5000", {
   autoConnect: false,
 });
 
 export default function ChatPage() {
+  const x = useSearchParams();
+  const receiverId = x.get("receiverId");
+  
   const [messages, setMessages] = useState([]);
   const [text, setText] = useState("");
   const [isTyping, setIsTyping] = useState(false);
@@ -17,9 +20,7 @@ export default function ChatPage() {
   const [mediaRecorder, setMediaRecorder] = useState(null);
   const [audioChunks, setAudioChunks] = useState([]);
 
-  const x = useSearchParams();
-  const receiverId = x.get("receiverId");
-
+  
   const scrollRef = useRef(null);
   const userId = getCurrentUserId();
 
