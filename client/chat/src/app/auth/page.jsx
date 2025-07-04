@@ -23,10 +23,10 @@ export default function AuthLandingPage() {
           </p>
 
           <div className="d-grid gap-3 col-6 mx-auto">
-            <Link href="/auth/login" className="btn btn-primary btn-lg">
+            <Link href="/auth/login" className="btn btn-primary btn-md">
               تسجيل الدخول
             </Link>
-            <Link href="/auth/register" className="btn btn-outline-primary btn-lg">
+            <Link href="/auth/register" className="btn btn-outline-primary btn-md">
               إنشاء حساب جديد
             </Link>
           </div>
