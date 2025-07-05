@@ -61,6 +61,7 @@ export default function ChatComponent({ params }) {
     });
 
     fetchMessages();
+    markMessagesAsRead();
 
     return () => {
       socket.disconnect();
@@ -79,6 +80,28 @@ export default function ChatComponent({ params }) {
       setMessages(res.data);
     } catch (err) {
       console.log("❌ Error fetching messages:", err.message);
+    }
+  };
+
+  // طلب تحديث حالة القراءة للرسائل الواردة من المستقبل
+  const markMessagesAsRead = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      await axios.put(`https://peppered-lace-newsprint.glitch.me/api/messages/mark-read/${receiverId}`, {}, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      // حدثي حالة القراءة محليًا حتى تظهر الصحين
+      setMessages((prev) =>
+        prev.map((msg) => {
+          if (msg.sender === receiverId && msg.receiver === userId && msg.isRead === false) {
+            return { ...msg, isRead: true };
+          }
+          return msg;
+        })
+      );
+    } catch (err) {
+      console.log("❌ Error marking messages as read:", err.message);
     }
   };
 
@@ -204,7 +227,10 @@ export default function ChatComponent({ params }) {
             const time = new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
             let statusIcon = "";
-            
+            if (isMine) {
+              if (msg.isRead) statusIcon = "✓✓";  // مقروءة
+              else statusIcon = "✓";               // لم تقرأ بعد
+            }
 
             return (
               <div key={msg._id || idx} className={`d-flex mb-1 ${isMine ? "justify-content-end" : "justify-content-start"}`}>
