@@ -12,8 +12,16 @@ const socket = io(process.env.NEXT_PUBLIC_SOCKET_URL || "http://localhost:5000",
 export default function ChatsPage() {
   const [chats, setChats] = useState([]);
   const [onlineUsers, setOnlineUsers] = useState([]);
-  const userId = getCurrentUserId();
   const router = useRouter();
+  const userId = getCurrentUserId();
+
+  // تحقق من وجود التوكن وإعادة التوجيه إن لم يكن موجود
+  useEffect(() => {
+    if (!userId) {
+      router.replace("/auth/login"); // توجه لصفحة تسجيل الدخول ولا تسمح بالرجوع
+      return;
+    }
+  }, [userId, router]);
 
   useEffect(() => {
     if (!userId) return;
@@ -49,17 +57,16 @@ export default function ChatsPage() {
 
   return (
     <div className="container py-5" dir="rtl">
-      
       {chats.map((chat) => {
         const otherUser = chat.users.find((u) => u._id !== userId);
         return (
           <div
             key={chat._id}
-            onClick={() => router.push(`/message/${otherUser._id}`)} // تم التعديل هنا
+            onClick={() => router.push(`/message/${otherUser._id}`)}
             className="list-group-item d-flex justify-content-between align-items-center"
             style={{ cursor: "pointer" }}
           >
-            <div>
+            <div className= "background-silver-transparent p-3">
               <strong>{otherUser?.username || "مستخدم"}</strong>
               <br />
               <small className="text-muted">{chat.lastMessage || "بدون رسائل"}</small>
@@ -92,4 +99,5 @@ function getCurrentUserId() {
   } catch {
     return null;
   }
-              }
+}
+
