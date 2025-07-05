@@ -12,31 +12,34 @@ export default function Navbar() {
   return (
     <nav className="navbar navbar-expand-lg navbar-light bg-light" dir="rtl">
       <div className="container">
-        {/* الشعار */}
-        <Image
+        {/* الشعار وزر القائمة */}
+        <div className="d-flex justify-content-between align-items-center w-100">
+          {/* الشعار */}
+          <Image
             src={chat_logo}
             alt="Chat Illustration"
             width={50}
             height={50}
-            className="mb-4 align-items-center"
+            className="mb-2"
             priority
           />
 
-        {/* زر القائمة للجوال */}
-        <button
-          className="navbar-toggler"
-          type="button"
-          data-bs-toggle="collapse"
-          data-bs-target="#navbarContent"
-          aria-controls="navbarContent"
-          aria-expanded="false"
-          aria-label="تبديل التنقل"
-        >
-          <span className="navbar-toggler-icon align-items-center"></span>
-        </button>
+          {/* زر القائمة للجوال */}
+          <button
+            className="navbar-toggler"
+            type="button"
+            data-bs-toggle="collapse"
+            data-bs-target="#navbarContent"
+            aria-controls="navbarContent"
+            aria-expanded="false"
+            aria-label="تبديل التنقل"
+          >
+            <span className="navbar-toggler-icon"></span>
+          </button>
+        </div>
 
         {/* الروابط */}
-        <div className="collapse navbar-collapse" id="navbarContent">
+        <div className="collapse navbar-collapse mt-2" id="navbarContent">
           <ul className="navbar-nav me-auto mb-2 mb-lg-0">
             <li className="nav-item">
               <a className="nav-link active" href="/">
@@ -50,7 +53,7 @@ export default function Navbar() {
             </li>
             <li className="nav-item">
               <a className="nav-link" href="/contacts">
-                الاصدقاء
+                الأصدقاء
               </a>
             </li>
           </ul>
@@ -58,4 +61,4 @@ export default function Navbar() {
       </div>
     </nav>
   );
-              }
+}
