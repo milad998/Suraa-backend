@@ -25,7 +25,7 @@ export default function ChatComponent({ params }) {
   useEffect(() => {
     // إذا لم يكن هناك توكن نعيد التوجيه لصفحة تسجيل الدخول
     if (!localStorage.getItem("token")) {
-      router.replace("/login"); // استبدال الصفحة الحالية لتمنع الرجوع
+      router.replace("/auth/login"); // استبدال الصفحة الحالية لتمنع الرجوع
       return;
     }
   }, [router]);
