@@ -29,6 +29,15 @@ export default function ChatComponent({ params }) {
     socket.on("receiveMessage", (msg) => {
       setMessages((prev) => {
         if (prev.some((m) => m._id === msg._id)) return prev;
+
+        // ✅ تشغيل الصوت تلقائيًا إن وجدت رسالة صوتية
+        if (msg.audioUrl) {
+          const audio = new Audio(msg.audioUrl);
+          audio.play().catch((err) => {
+            console.warn("⚠️ لم يتم تشغيل الصوت تلقائيًا:", err.message);
+          });
+        }
+
         return [...prev, msg];
       });
     });
@@ -169,7 +178,7 @@ export default function ChatComponent({ params }) {
       <div className="flex-grow-1 p-3 overflow-auto">
         {messages.map((msg, idx) => {
           const isMine = msg.sender === userId;
-          const time = new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+          const time = new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
           let statusIcon = "";
           if (isMine) {
@@ -252,4 +261,4 @@ function getCurrentUserId() {
   } catch {
     return null;
   }
-}
+  }
