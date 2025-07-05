@@ -12,6 +12,8 @@ const socket = io(process.env.NEXT_PUBLIC_SOCKET_URL || "https://peppered-lace-n
 export default function ChatComponent({ params }) {
   const router = useRouter();
   const receiverId = params.receiverId;
+  const userId = getCurrentUserId();
+
   const [messages, setMessages] = useState([]);
   const [text, setText] = useState("");
   const [isTyping, setIsTyping] = useState(false);
@@ -19,13 +21,12 @@ export default function ChatComponent({ params }) {
   const [recording, setRecording] = useState(false);
   const [recordTime, setRecordTime] = useState(0);
 
+  const scrollRef = useRef(null);
+  const notifyAudioRef = useRef(null);
   const mediaRecorderRef = useRef(null);
   const cancelRecordingRef = useRef(false);
   const recordIntervalRef = useRef(null);
-
-  const scrollRef = useRef(null);
-  const notifyAudioRef = useRef(null);
-  const userId = getCurrentUserId();
+  const typingTimeoutRef = useRef(null);
 
   useEffect(() => {
     if (!localStorage.getItem("token")) {
@@ -42,13 +43,11 @@ export default function ChatComponent({ params }) {
     socket.on("receiveMessage", (msg) => {
       setMessages((prev) => {
         if (prev.some((m) => m._id === msg._id)) return prev;
-
         if (notifyAudioRef.current) {
           notifyAudioRef.current.play().catch((err) => {
             console.warn("⚠️ فشل تشغيل صوت الإشعار:", err.message);
           });
         }
-
         return [...prev, msg];
       });
     });
@@ -64,10 +63,10 @@ export default function ChatComponent({ params }) {
     fetchMessages();
 
     return () => {
+      socket.disconnect();
       socket.off("receiveMessage");
       socket.off("userTyping");
       socket.off("userStopTyping");
-      socket.disconnect();
     };
   }, [receiverId, userId]);
 
@@ -115,8 +114,8 @@ export default function ChatComponent({ params }) {
       socket.emit("userTyping", userId);
     }
 
-    clearTimeout(window.typingTimeout);
-    window.typingTimeout = setTimeout(() => {
+    clearTimeout(typingTimeoutRef.current);
+    typingTimeoutRef.current = setTimeout(() => {
       setIsTyping(false);
       socket.emit("userStopTyping", userId);
     }, 2000);
@@ -126,14 +125,12 @@ export default function ChatComponent({ params }) {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       const recorder = new MediaRecorder(stream, {
-        mimeType: "audio/aac", // ⚠️ قد لا يدعمه كل المتصفحات
+        mimeType: "audio/webm",
       });
 
       const chunks = [];
 
-      recorder.ondataavailable = (e) => {
-        chunks.push(e.data);
-      };
+      recorder.ondataavailable = (e) => chunks.push(e.data);
 
       recorder.onstop = async () => {
         clearInterval(recordIntervalRef.current);
@@ -144,8 +141,8 @@ export default function ChatComponent({ params }) {
           return;
         }
 
-        const blob = new Blob(chunks, { type: "audio/aac" });
-        const file = new File([blob], `voice_${Date.now()}.aac`, { type: "audio/aac" });
+        const blob = new Blob(chunks, { type: "audio/webm" });
+        const file = new File([blob], `voice_${Date.now()}.webm`, { type: "audio/webm" });
 
         const formData = new FormData();
         formData.append("receiver", receiverId);
@@ -181,7 +178,7 @@ export default function ChatComponent({ params }) {
   };
 
   const stopRecording = () => {
-    if (mediaRecorderRef.current && mediaRecorderRef.current.state !== "inactive") {
+    if (mediaRecorderRef.current && mediaRecorderRef.current.state === "recording") {
       mediaRecorderRef.current.stop();
       setRecording(false);
     }
@@ -207,11 +204,7 @@ export default function ChatComponent({ params }) {
             const time = new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
             let statusIcon = "";
-            if (isMine) {
-              if (msg.status === "read") statusIcon = "🟦✓✓";
-              else if (msg.status === "delivered") statusIcon = "✓✓";
-              else statusIcon = "✅";
-            }
+            
 
             return (
               <div key={msg._id || idx} className={`d-flex mb-1 ${isMine ? "justify-content-end" : "justify-content-start"}`}>
@@ -223,19 +216,17 @@ export default function ChatComponent({ params }) {
                     borderBottomLeftRadius: isMine ? "16px" : "4px",
                     borderBottomRightRadius: isMine ? "4px" : "16px",
                     boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
-                    padding: "8px 12px",
-                    lineHeight: 1.2,
                   }}
                 >
                   {msg.audioUrl ? (
                     <>
                       <audio controls style={{ width: "100%", borderRadius: 8 }}>
-                        <source src={msg.audioUrl} type="audio/aac" />
+                        <source src={msg.audioUrl} type="audio/webm" />
                         المتصفح لا يدعم تشغيل هذا الملف.
                       </audio>
                       <a
                         href={msg.audioUrl}
-                        download={`voice_${msg._id || idx}.aac`}
+                        download={`voice_${msg._id || idx}.webm`}
                         className="btn btn-sm btn-link mt-1"
                         style={{ textDecoration: "none", color: "#0d6efd" }}
                       >
@@ -297,8 +288,9 @@ export default function ChatComponent({ params }) {
 function getCurrentUserId() {
   try {
     const token = localStorage.getItem("token");
+    if (!token) return null;
     const payload = JSON.parse(atob(token.split(".")[1]));
-    return payload.id;
+    return payload?.id;
   } catch {
     return null;
   }
