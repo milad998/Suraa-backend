@@ -18,7 +18,7 @@ export default function Navbar() {
             alt="Chat Illustration"
             width={50}
             height={50}
-            className="mb-4"
+            className="mb-4 align-items-center"
             priority
           />
 
@@ -32,7 +32,7 @@ export default function Navbar() {
           aria-expanded="false"
           aria-label="تبديل التنقل"
         >
-          <span className="navbar-toggler-icon"></span>
+          <span className="navbar-toggler-icon align-items-center"></span>
         </button>
 
         {/* الروابط */}
