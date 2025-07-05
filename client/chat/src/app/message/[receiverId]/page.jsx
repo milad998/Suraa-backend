@@ -5,7 +5,7 @@ import { io } from "socket.io-client";
 import axios from "axios";
 import { useRouter } from "next/navigation"; // استيراد اليوزرتر
 
-const socket = io(process.env.NEXT_PUBLIC_SOCKET_URL || "http://localhost:5000", {
+const socket = io(process.env.NEXT_PUBLIC_SOCKET_URL || "https://peppered-lace-newsprint.glitch.me", {
   autoConnect: false,
 });
 
