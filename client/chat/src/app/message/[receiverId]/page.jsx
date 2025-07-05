@@ -18,15 +18,13 @@ export default function ChatComponent({ params }) {
   const [typingStatus, setTypingStatus] = useState(false);
   const [recording, setRecording] = useState(false);
   const [mediaRecorder, setMediaRecorder] = useState(null);
-  const [audioChunks, setAudioChunks] = useState([]);
   const scrollRef = useRef(null);
-  const notifyAudioRef = useRef(null); // ✅ مرجع الصوت
+  const notifyAudioRef = useRef(null);
   const userId = getCurrentUserId();
 
   useEffect(() => {
     if (!localStorage.getItem("token")) {
       router.replace("/auth/login");
-      return;
     }
   }, [router]);
 
@@ -124,14 +122,14 @@ export default function ChatComponent({ params }) {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       const recorder = new MediaRecorder(stream);
-      setAudioChunks([]);
+      const chunks = [];
 
       recorder.ondataavailable = (e) => {
-        setAudioChunks((prev) => [...prev, e.data]);
+        chunks.push(e.data);
       };
 
       recorder.onstop = async () => {
-        const blob = new Blob(audioChunks, { type: "audio/webm" });
+        const blob = new Blob(chunks, { type: "audio/webm" });
         const file = new File([blob], `voice_${Date.now()}.webm`, { type: "audio/webm" });
 
         const formData = new FormData();
@@ -153,15 +151,11 @@ export default function ChatComponent({ params }) {
         } catch (err) {
           console.log("❌ Error sending audio:", err.message);
         }
-
-        setAudioChunks([]);
-        console.log("🎤 تم إيقاف التسجيل وإرسال الصوت");
       };
 
-      setMediaRecorder(recorder);
       recorder.start();
+      setMediaRecorder(recorder);
       setRecording(true);
-      console.log("🎙️ بدأ التسجيل الصوتي...");
     } catch (err) {
       console.log("🎙️ Error starting recording:", err);
     }
@@ -180,14 +174,10 @@ export default function ChatComponent({ params }) {
 
   return (
     <>
-      {/* ✅ مشغل صوت الإشعار */}
       <audio ref={notifyAudioRef} src="/notify.mp3" preload="auto" />
 
       <div className="d-flex flex-column justify-content-between" dir="rtl" style={{ height: "100vh", background: "#f0f2f5" }}>
-        {/* Header */}
-
-        {/* Messages */}
-        <div className="d-flex flex-row p-1 overflow-auto">
+        <div className="d-flex flex-column flex-grow-1 overflow-auto p-2">
           {messages.map((msg, idx) => {
             const isMine = msg.sender === userId;
             const time = new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
@@ -200,19 +190,21 @@ export default function ChatComponent({ params }) {
             }
 
             return (
-              <div key={msg._id || idx} className={`d-flex mb-2 ${isMine ? "justify-content-end" : "justify-content-start"}`}>
+              <div key={msg._id || idx} className={`d-flex mb-1 ${isMine ? "justify-content-end" : "justify-content-start"}`}>
                 <div
-                  className={`p-2 ${isMine ? "bg-info text-dark" : "bg-white text-dark"}`}
+                  className={`p-2 ${isMine ? "bg-info" : "bg-white"} text-dark`}
                   style={{
-                    maxWidth: "75%"
+                    maxWidth: "75%",
                     borderRadius: "16px",
                     borderBottomLeftRadius: isMine ? "16px" : "4px",
                     borderBottomRightRadius: isMine ? "4px" : "16px",
                     boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
+                    padding: "8px 12px",
+                    lineHeight: 1.2,
                   }}
                 >
                   {msg.audioUrl ? (
-                    <div>
+                    <>
                       <audio controls style={{ width: "100%", borderRadius: 8 }}>
                         <source src={msg.audioUrl} type="audio/webm" />
                         المتصفح لا يدعم تشغيل هذا الملف.
@@ -225,13 +217,15 @@ export default function ChatComponent({ params }) {
                       >
                         ⬇️ تحميل
                       </a>
-                    </div>
+                    </>
                   ) : (
-                    <div>{msg.text || "🎤 رسالة صوتية"}</div>
+                    <div style={{ fontWeight: "bold", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                      <span>{msg.text || "🎤 رسالة صوتية"}</span>
+                      <small style={{ fontSize: "0.75rem", color: "#6c757d", marginLeft: "8px", whiteSpace: "nowrap" }}>
+                        {time} {isMine && <span className="ms-1">{statusIcon}</span>}
+                      </small>
+                    </div>
                   )}
-                  <div className="text-end small mt-1 text-muted">
-                    {time} {isMine && <span className="ms-1">{statusIcon}</span>}
-                  </div>
                 </div>
               </div>
             );
@@ -240,7 +234,6 @@ export default function ChatComponent({ params }) {
           <div ref={scrollRef}></div>
         </div>
 
-        {/* Input Area */}
         <div className="p-3 bg-white border-top">
           <div className="input-group">
             <input
@@ -274,4 +267,4 @@ function getCurrentUserId() {
   } catch {
     return null;
   }
-}
+              }
