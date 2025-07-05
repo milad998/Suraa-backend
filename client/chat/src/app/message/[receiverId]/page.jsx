@@ -3,12 +3,14 @@
 import { useEffect, useRef, useState } from "react";
 import { io } from "socket.io-client";
 import axios from "axios";
+import { useRouter } from "next/navigation"; // استيراد اليوزرتر
 
 const socket = io(process.env.NEXT_PUBLIC_SOCKET_URL || "http://localhost:5000", {
   autoConnect: false,
 });
 
 export default function ChatComponent({ params }) {
+  const router = useRouter(); // انشاء اليوزرتر
   const receiverId = params.receiverId;
   const [messages, setMessages] = useState([]);
   const [text, setText] = useState("");
@@ -19,6 +21,14 @@ export default function ChatComponent({ params }) {
   const [audioChunks, setAudioChunks] = useState([]);
   const scrollRef = useRef(null);
   const userId = getCurrentUserId();
+
+  useEffect(() => {
+    // إذا لم يكن هناك توكن نعيد التوجيه لصفحة تسجيل الدخول
+    if (!localStorage.getItem("token")) {
+      router.replace("/login"); // استبدال الصفحة الحالية لتمنع الرجوع
+      return;
+    }
+  }, [router]);
 
   useEffect(() => {
     if (!userId || !receiverId) return;
@@ -49,7 +59,9 @@ export default function ChatComponent({ params }) {
       socket.off("userStopTyping");
       socket.disconnect();
     };
-  }, [receiverId]);
+  }, [receiverId, userId]);
+
+  // باقي الكود كما هو...
 
   const fetchMessages = async () => {
     try {
