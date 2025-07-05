@@ -29,6 +29,7 @@ export default function RootLayout({ children }) {
           rel="stylesheet"
           href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css"
         />
+        <link rel="icon" type="image/png" href="https://cdn-icons-png.flaticon.com/512/4712/4712035.png" /> 
       </head>
       <body className={`${geistSans.variable} ${geistMono.variable}`}>
         <Navbar />
