@@ -1,7 +1,7 @@
 "use client";
 import { useEffect } from "react";
-import chat_logo from "../../public/4712035.png";
-import Image from "next/image";
+
+
 
 export default function Navbar() {
   useEffect(() => {
@@ -12,13 +12,7 @@ export default function Navbar() {
     <nav className="navbar navbar-light bg-light sticky-top" dir="rtl">
       <div className="container d-flex justify-content-between align-items-center">
         {/* الشعار */}
-        <Image
-          src={chat_logo}
-          alt="Chat Illustration"
-          width={50}
-          height={50}
-          priority
-        />
+        
 
         {/* الأيقونات فقط */}
         <div className="d-flex gap-4">
