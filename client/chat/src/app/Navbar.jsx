@@ -10,7 +10,7 @@ export default function Navbar() {
   }, []);
 
   return (
-    <nav className="navbar navbar-expand-lg navbar-light bg-light" dir="rtl">
+    <nav className="navbar navbar-expand-lg navbar-light bg-light sticky-top" dir="rtl">
       <div className="container">
         {/* الشعار وزر القائمة */}
         <div className="d-flex justify-content-between align-items-center w-100">
@@ -61,4 +61,4 @@ export default function Navbar() {
       </div>
     </nav>
   );
-}
+        }
