@@ -17,7 +17,7 @@ export default function ChatComponent({ params }) {
   const [isTyping, setIsTyping] = useState(false);
   const [typingStatus, setTypingStatus] = useState(false);
   const [recording, setRecording] = useState(false);
-  const [mediaRecorder, setMediaRecorder] = useState(null);
+  const mediaRecorderRef = useRef(null); // ✅ استخدام useRef بدلاً من useState
   const scrollRef = useRef(null);
   const notifyAudioRef = useRef(null);
   const userId = getCurrentUserId();
@@ -123,6 +123,7 @@ export default function ChatComponent({ params }) {
       const recorder = new MediaRecorder(stream, {
         mimeType: "audio/webm;codecs=opus",
       });
+
       const chunks = [];
 
       recorder.ondataavailable = (e) => {
@@ -130,8 +131,9 @@ export default function ChatComponent({ params }) {
       };
 
       recorder.onstop = async () => {
+        console.log("📢 التسجيل توقف. عدد الأجزاء:", chunks.length);
         if (chunks.length === 0) {
-          console.warn("⚠️ لا يوجد بيانات صوتية مسجلة.");
+          console.warn("⚠️ لا توجد بيانات صوتية");
           return;
         }
 
@@ -152,16 +154,15 @@ export default function ChatComponent({ params }) {
             },
           });
 
-          console.log("✅ تم إرسال الصوت:", res.data);
           socket.emit("sendMessage", res.data);
           setMessages((prev) => [...prev, res.data]);
         } catch (err) {
-          console.log("❌ Error sending audio:", err.message);
+          console.log("❌ فشل إرسال الصوت:", err.message);
         }
       };
 
       recorder.start();
-      setMediaRecorder(recorder);
+      mediaRecorderRef.current = recorder;
       setRecording(true);
     } catch (err) {
       console.log("🎙️ فشل في بدء التسجيل:", err);
@@ -169,9 +170,12 @@ export default function ChatComponent({ params }) {
   };
 
   const stopRecording = () => {
-    if (mediaRecorder) {
-      mediaRecorder.stop();
+    if (mediaRecorderRef.current && mediaRecorderRef.current.state !== "inactive") {
+      console.log("⏹️ إيقاف التسجيل");
+      mediaRecorderRef.current.stop();
       setRecording(false);
+    } else {
+      console.warn("⚠️ لا يمكن إيقاف التسجيل - mediaRecorder غير نشط");
     }
   };
 
