@@ -187,7 +187,7 @@ export default function ChatComponent({ params }) {
         {/* Header */}
 
         {/* Messages */}
-        <div className="flex-grow-1 p-3 overflow-auto">
+        <div className="d-flex flex-row p-1 overflow-auto">
           {messages.map((msg, idx) => {
             const isMine = msg.sender === userId;
             const time = new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
@@ -204,7 +204,7 @@ export default function ChatComponent({ params }) {
                 <div
                   className={`p-2 ${isMine ? "bg-info text-dark" : "bg-white text-dark"}`}
                   style={{
-                    maxWidth: "75%",
+                    maxWidth: "75%"
                     borderRadius: "16px",
                     borderBottomLeftRadius: isMine ? "16px" : "4px",
                     borderBottomRightRadius: isMine ? "4px" : "16px",
