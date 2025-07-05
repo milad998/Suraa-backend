@@ -126,7 +126,7 @@ export default function ChatComponent({ params }) {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       const recorder = new MediaRecorder(stream, {
-        mimeType: "audio/webm;codecs=opus",
+        mimeType: "audio/aac", // ⚠️ قد لا يدعمه كل المتصفحات
       });
 
       const chunks = [];
@@ -144,8 +144,8 @@ export default function ChatComponent({ params }) {
           return;
         }
 
-        const blob = new Blob(chunks, { type: "audio/webm" });
-        const file = new File([blob], `voice_${Date.now()}.webm`, { type: "audio/webm" });
+        const blob = new Blob(chunks, { type: "audio/aac" });
+        const file = new File([blob], `voice_${Date.now()}.aac`, { type: "audio/aac" });
 
         const formData = new FormData();
         formData.append("receiver", receiverId);
@@ -230,12 +230,12 @@ export default function ChatComponent({ params }) {
                   {msg.audioUrl ? (
                     <>
                       <audio controls style={{ width: "100%", borderRadius: 8 }}>
-                        <source src={msg.audioUrl} type="audio/webm" />
+                        <source src={msg.audioUrl} type="audio/aac" />
                         المتصفح لا يدعم تشغيل هذا الملف.
                       </audio>
                       <a
                         href={msg.audioUrl}
-                        download={`voice_${msg._id || idx}.webm`}
+                        download={`voice_${msg._id || idx}.aac`}
                         className="btn btn-sm btn-link mt-1"
                         style={{ textDecoration: "none", color: "#0d6efd" }}
                       >
@@ -302,4 +302,4 @@ function getCurrentUserId() {
   } catch {
     return null;
   }
-                                              }
+}
