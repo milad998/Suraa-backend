@@ -1,15 +1,27 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import axios from "axios";
+import { useRouter } from "next/navigation";
 
 export default function SearchContacts() {
   const [phones, setPhones] = useState("");
   const [results, setResults] = useState([]);
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!localStorage.getItem("token")) {
+      router.replace("/login");
+    }
+  }, [router]);
 
   const handleSearch = async () => {
     try {
       const token = localStorage.getItem("token");
+      if (!token) {
+        router.replace("/auth/login");
+        return;
+      }
       const res = await axios.post(
         "https://peppered-lace-newsprint.glitch.me/api/users/search-contacts",
         { phones: phones.split(",").map((p) => p.trim()) },
@@ -48,4 +60,4 @@ export default function SearchContacts() {
       )}
     </div>
   );
-    }
+}
