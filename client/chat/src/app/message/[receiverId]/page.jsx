@@ -159,9 +159,13 @@ export default function ChatComponent({ params }) {
   }, [messages]);
 
   return (
-    <div className="d-flex flex-column justify-content-between" dir="rtl" style={{ height: "100vh", background: "#e5ddd5" }}>
-      <div className="p-3 text-center bg-success text-white shadow">🗨️ محادثة</div>
+    <div className="d-flex flex-column justify-content-between" dir="rtl" style={{ height: "100vh", background: "#f0f2f5" }}>
+      {/* Header */}
+      <div className="p-3 text-center bg-white shadow-sm border-bottom fw-bold text-primary">
+        💬 المحادثة
+      </div>
 
+      {/* Messages */}
       <div className="flex-grow-1 p-3 overflow-auto">
         {messages.map((msg, idx) => {
           const isMine = msg.sender === userId;
@@ -177,36 +181,46 @@ export default function ChatComponent({ params }) {
           return (
             <div key={msg._id || idx} className={`d-flex mb-2 ${isMine ? "justify-content-end" : "justify-content-start"}`}>
               <div
-                className={`p-2 shadow-sm ${isMine ? "bg-success text-white" : "bg-white text-dark"}`}
+                className={`p-2 ${isMine ? "bg-info text-dark" : "bg-white text-dark"}`}
                 style={{
                   maxWidth: "75%",
                   borderRadius: "16px",
                   borderBottomLeftRadius: isMine ? "16px" : "4px",
                   borderBottomRightRadius: isMine ? "4px" : "16px",
-                  position: "relative",
+                  boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
                 }}
               >
                 {msg.audioUrl ? (
-                  <audio controls src={msg.audioUrl}></audio>
+                  <>
+                    <audio controls style={{ width: "100%" }}>
+                      <source src={msg.audioUrl} type="audio/webm" />
+                      المتصفح لا يدعم تشغيل هذا الملف.
+                    </audio>
+                    <a
+                      href={msg.audioUrl}
+                      download={`voice_${msg._id || idx}.webm`}
+                      className="btn btn-sm btn-link mt-1"
+                      style={{ textDecoration: "none", color: "#0d6efd" }}
+                    >
+                      ⬇️ تحميل
+                    </a>
+                  </>
                 ) : (
                   <div>{msg.text || "🎤 رسالة صوتية"}</div>
                 )}
-                <div
-                  className="text-end text-white-50 small mt-1"
-                  style={{ fontSize: "0.75rem", opacity: 0.8 }}
-                >
+                <div className="text-end small mt-1 text-muted">
                   {time} {isMine && <span className="ms-1">{statusIcon}</span>}
                 </div>
               </div>
             </div>
           );
         })}
-
         {typingStatus && <div className="text-muted mb-2">...يكتب الآن</div>}
         <div ref={scrollRef}></div>
       </div>
 
-      <div className="p-2 bg-white border-top">
+      {/* Input Area */}
+      <div className="p-3 bg-white border-top">
         <div className="input-group">
           <input
             type="text"
@@ -214,9 +228,8 @@ export default function ChatComponent({ params }) {
             placeholder="اكتب رسالة..."
             value={text}
             onChange={handleTyping}
-            style={{ borderTopLeftRadius: 20, borderBottomLeftRadius: 20 }}
           />
-          <button className="btn btn-outline-success" onClick={handleSend}>
+          <button className="btn btn-outline-primary" onClick={handleSend}>
             📤
           </button>
           <button
@@ -239,4 +252,4 @@ function getCurrentUserId() {
   } catch {
     return null;
   }
-    }
+}
