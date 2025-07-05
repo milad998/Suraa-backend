@@ -175,15 +175,13 @@ export default function ChatComponent({ params }) {
   return (
     <div className="d-flex flex-column justify-content-between" dir="rtl" style={{ height: "100vh", background: "#f0f2f5" }}>
       {/* Header */}
-      <div className="p-3 text-center bg-white shadow-sm border-bottom fw-bold text-primary">
-        💬 المحادثة
-      </div>
+      
 
       {/* Messages */}
       <div className="flex-grow-1 p-3 overflow-auto">
         {messages.map((msg, idx) => {
           const isMine = msg.sender === userId;
-          const time = new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+          const time = new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
           let statusIcon = "";
           if (isMine) {
