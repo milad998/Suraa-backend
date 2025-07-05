@@ -12,13 +12,13 @@ const socket = io(process.env.NEXT_PUBLIC_SOCKET_URL || "http://localhost:5000",
 export default function ChatsPage() {
   const [chats, setChats] = useState([]);
   const [onlineUsers, setOnlineUsers] = useState([]);
+  const [unreadCounts, setUnreadCounts] = useState({});
   const router = useRouter();
   const userId = getCurrentUserId();
 
-  // تحقق من وجود التوكن وإعادة التوجيه إن لم يكن موجود
   useEffect(() => {
     if (!userId) {
-      router.replace("/auth/login"); // توجه لصفحة تسجيل الدخول ولا تسمح بالرجوع
+      router.replace("/auth/login");
       return;
     }
   }, [userId, router]);
@@ -33,10 +33,38 @@ export default function ChatsPage() {
       setOnlineUsers(users);
     });
 
+    socket.on("receiveMessage", (msg) => {
+      const otherId = msg.sender === userId ? msg.receiver : msg.sender;
+
+      // ✅ تشغيل صوت الإشعار
+      const audio = document.getElementById("notify-audio");
+      if (audio) {
+        audio.play().catch((err) =>
+          console.warn("فشل تشغيل صوت الإشعار:", err.message)
+        );
+      }
+
+      // ✅ تحديث عداد الرسائل
+      setUnreadCounts((prev) => ({
+        ...prev,
+        [otherId]: (prev[otherId] || 0) + 1,
+      }));
+
+      // ✅ تحديث عرض آخر رسالة
+      setChats((prev) =>
+        prev.map((chat) =>
+          chat.users.some((u) => u._id === otherId)
+            ? { ...chat, lastMessage: msg.text || "📩 رسالة جديدة" }
+            : chat
+        )
+      );
+    });
+
     fetchChats();
 
     return () => {
       socket.off("onlineUsers");
+      socket.off("receiveMessage");
       socket.disconnect();
     };
   }, [userId]);
@@ -55,23 +83,40 @@ export default function ChatsPage() {
 
   const isUserOnline = (id) => onlineUsers.includes(id);
 
+  const handleOpenChat = (otherUserId) => {
+    router.push(`/message/${otherUserId}`);
+    setUnreadCounts((prev) => {
+      const updated = { ...prev };
+      delete updated[otherUserId];
+      return updated;
+    });
+  };
+
   return (
     <div className="container py-5" dir="rtl">
+      <audio id="notify-audio" src="/notify.mp3" preload="auto" />
+      
       {chats.map((chat) => {
         const otherUser = chat.users.find((u) => u._id !== userId);
         return (
           <div
             key={chat._id}
-            onClick={() => router.push(`/message/${otherUser._id}`)}
+            onClick={() => handleOpenChat(otherUser._id)}
             className="list-group-item d-flex justify-content-between align-items-center"
             style={{ cursor: "pointer" }}
           >
-            <div className= "background-silver-transparent p-3">
+            <div className="background-silver-transparent p-3">
               <strong>{otherUser?.username || "مستخدم"}</strong>
               <br />
               <small className="text-muted">{chat.lastMessage || "بدون رسائل"}</small>
             </div>
+
             <div className="d-flex align-items-center gap-2">
+              {unreadCounts[otherUser._id] > 0 && (
+                <span className="badge bg-danger rounded-pill">
+                  {unreadCounts[otherUser._id]}
+                </span>
+              )}
               <span
                 className="rounded-circle"
                 style={{
@@ -89,7 +134,6 @@ export default function ChatsPage() {
   );
 }
 
-// فك التوكن للحصول على معرف المستخدم الحالي
 function getCurrentUserId() {
   try {
     const token = localStorage.getItem("token");
@@ -100,4 +144,3 @@ function getCurrentUserId() {
     return null;
   }
 }
-
