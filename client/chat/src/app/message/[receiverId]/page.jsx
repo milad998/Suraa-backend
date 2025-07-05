@@ -29,15 +29,6 @@ export default function ChatComponent({ params }) {
     socket.on("receiveMessage", (msg) => {
       setMessages((prev) => {
         if (prev.some((m) => m._id === msg._id)) return prev;
-
-        // ✅ تشغيل الصوت تلقائيًا إن وجدت رسالة صوتية
-        if (msg.audioUrl) {
-          const audio = new Audio(msg.audioUrl);
-          audio.play().catch((err) => {
-            console.warn("⚠️ لم يتم تشغيل الصوت تلقائيًا:", err.message);
-          });
-        }
-
         return [...prev, msg];
       });
     });
@@ -146,11 +137,13 @@ export default function ChatComponent({ params }) {
         }
 
         setAudioChunks([]);
+        console.log("🎤 تم إيقاف التسجيل وإرسال الصوت");
       };
 
       setMediaRecorder(recorder);
       recorder.start();
       setRecording(true);
+      console.log("🎙️ بدأ التسجيل الصوتي...");
     } catch (err) {
       console.log("🎙️ Error starting recording:", err);
     }
@@ -200,8 +193,8 @@ export default function ChatComponent({ params }) {
                 }}
               >
                 {msg.audioUrl ? (
-                  <>
-                    <audio controls style={{ width: "100%" }}>
+                  <div>
+                    <audio controls style={{ width: "100%", borderRadius: 8 }}>
                       <source src={msg.audioUrl} type="audio/webm" />
                       المتصفح لا يدعم تشغيل هذا الملف.
                     </audio>
@@ -213,7 +206,7 @@ export default function ChatComponent({ params }) {
                     >
                       ⬇️ تحميل
                     </a>
-                  </>
+                  </div>
                 ) : (
                   <div>{msg.text || "🎤 رسالة صوتية"}</div>
                 )}
