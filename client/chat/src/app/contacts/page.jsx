@@ -10,7 +10,8 @@ export default function SearchContacts() {
   const router = useRouter();
 
   useEffect(() => {
-    if (!localStorage.getItem("token")) {
+    const token = localStorage.getItem("token");
+    if (!token) {
       router.replace("/login");
     }
   }, [router]);
@@ -19,7 +20,7 @@ export default function SearchContacts() {
     try {
       const token = localStorage.getItem("token");
       if (!token) {
-        router.replace("/auth/login");
+        router.replace("/login");
         return;
       }
       const res = await axios.post(
@@ -31,6 +32,11 @@ export default function SearchContacts() {
     } catch (err) {
       alert("فشل في البحث عن جهات الاتصال");
     }
+  };
+
+  const handleSelectUser = (receiverId) => {
+    // ✅ التوجيه إلى صفحة الرسائل باستخدام receiverId
+    router.push(`/message/${receiverId}`);
   };
 
   return (
@@ -52,7 +58,12 @@ export default function SearchContacts() {
       {results.length > 0 && (
         <ul className="list-group">
           {results.map((user) => (
-            <li className="list-group-item" key={user._id}>
+            <li
+              key={user._id}
+              className="list-group-item list-group-item-action"
+              onClick={() => handleSelectUser(user._id)} // ✅ هنا نمرر receiverId
+              style={{ cursor: "pointer" }}
+            >
               {user.username} - {user.phone}
             </li>
           ))}
