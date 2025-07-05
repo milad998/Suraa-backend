@@ -38,7 +38,6 @@ export default function ChatComponent({ params }) {
       setMessages((prev) => {
         if (prev.some((m) => m._id === msg._id)) return prev;
 
-        // ✅ تشغيل صوت الإشعار
         if (notifyAudioRef.current) {
           notifyAudioRef.current.play().catch((err) => {
             console.warn("⚠️ فشل تشغيل صوت الإشعار:", err.message);
@@ -121,7 +120,9 @@ export default function ChatComponent({ params }) {
   const startRecording = async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      const recorder = new MediaRecorder(stream);
+      const recorder = new MediaRecorder(stream, {
+        mimeType: "audio/webm;codecs=opus",
+      });
       const chunks = [];
 
       recorder.ondataavailable = (e) => {
@@ -129,6 +130,11 @@ export default function ChatComponent({ params }) {
       };
 
       recorder.onstop = async () => {
+        if (chunks.length === 0) {
+          console.warn("⚠️ لا يوجد بيانات صوتية مسجلة.");
+          return;
+        }
+
         const blob = new Blob(chunks, { type: "audio/webm" });
         const file = new File([blob], `voice_${Date.now()}.webm`, { type: "audio/webm" });
 
@@ -146,6 +152,7 @@ export default function ChatComponent({ params }) {
             },
           });
 
+          console.log("✅ تم إرسال الصوت:", res.data);
           socket.emit("sendMessage", res.data);
           setMessages((prev) => [...prev, res.data]);
         } catch (err) {
@@ -157,7 +164,7 @@ export default function ChatComponent({ params }) {
       setMediaRecorder(recorder);
       setRecording(true);
     } catch (err) {
-      console.log("🎙️ Error starting recording:", err);
+      console.log("🎙️ فشل في بدء التسجيل:", err);
     }
   };
 
@@ -267,4 +274,4 @@ function getCurrentUserId() {
   } catch {
     return null;
   }
-              }
+}
