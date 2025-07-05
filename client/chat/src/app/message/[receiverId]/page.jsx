@@ -169,7 +169,7 @@ export default function ChatComponent({ params }) {
       <div className="flex-grow-1 p-3 overflow-auto">
         {messages.map((msg, idx) => {
           const isMine = msg.sender === userId;
-          const time = new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+          const time = new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
           let statusIcon = "";
           if (isMine) {
