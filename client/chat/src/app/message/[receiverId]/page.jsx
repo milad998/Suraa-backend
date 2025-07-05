@@ -17,7 +17,12 @@ export default function ChatComponent({ params }) {
   const [isTyping, setIsTyping] = useState(false);
   const [typingStatus, setTypingStatus] = useState(false);
   const [recording, setRecording] = useState(false);
-  const mediaRecorderRef = useRef(null); // ✅ استخدام useRef بدلاً من useState
+  const [recordTime, setRecordTime] = useState(0);
+
+  const mediaRecorderRef = useRef(null);
+  const cancelRecordingRef = useRef(false);
+  const recordIntervalRef = useRef(null);
+
   const scrollRef = useRef(null);
   const notifyAudioRef = useRef(null);
   const userId = getCurrentUserId();
@@ -131,9 +136,11 @@ export default function ChatComponent({ params }) {
       };
 
       recorder.onstop = async () => {
-        console.log("📢 التسجيل توقف. عدد الأجزاء:", chunks.length);
-        if (chunks.length === 0) {
-          console.warn("⚠️ لا توجد بيانات صوتية");
+        clearInterval(recordIntervalRef.current);
+        setRecordTime(0);
+
+        if (!chunks.length || cancelRecordingRef.current) {
+          cancelRecordingRef.current = false;
           return;
         }
 
@@ -157,26 +164,32 @@ export default function ChatComponent({ params }) {
           socket.emit("sendMessage", res.data);
           setMessages((prev) => [...prev, res.data]);
         } catch (err) {
-          console.log("❌ فشل إرسال الصوت:", err.message);
+          console.log("❌ Error sending audio:", err.message);
         }
       };
 
       recorder.start();
       mediaRecorderRef.current = recorder;
       setRecording(true);
+
+      recordIntervalRef.current = setInterval(() => {
+        setRecordTime((prev) => prev + 1);
+      }, 1000);
     } catch (err) {
-      console.log("🎙️ فشل في بدء التسجيل:", err);
+      console.log("🎙️ Error starting recording:", err);
     }
   };
 
   const stopRecording = () => {
     if (mediaRecorderRef.current && mediaRecorderRef.current.state !== "inactive") {
-      console.log("⏹️ إيقاف التسجيل");
       mediaRecorderRef.current.stop();
       setRecording(false);
-    } else {
-      console.warn("⚠️ لا يمكن إيقاف التسجيل - mediaRecorder غير نشط");
     }
+  };
+
+  const cancelRecording = () => {
+    cancelRecordingRef.current = true;
+    stopRecording();
   };
 
   useEffect(() => {
@@ -246,23 +259,34 @@ export default function ChatComponent({ params }) {
         </div>
 
         <div className="p-3 bg-white border-top">
-          <div className="input-group">
+          <div className="input-group align-items-center">
             <input
               type="text"
               className="form-control rounded-start-pill"
               placeholder="اكتب رسالة..."
               value={text}
               onChange={handleTyping}
+              disabled={recording}
             />
-            <button className="btn btn-outline-primary" onClick={handleSend}>
-              📤
-            </button>
-            <button
-              className={`btn ${recording ? "btn-danger" : "btn-secondary"}`}
-              onClick={recording ? stopRecording : startRecording}
-            >
-              {recording ? "⏹️" : "🎙️"}
-            </button>
+            {recording ? (
+              <>
+                <button className="btn btn-danger" onClick={stopRecording}>
+                  ⏹️ إيقاف ({recordTime}s)
+                </button>
+                <button className="btn btn-outline-secondary" onClick={cancelRecording}>
+                  ❌ إلغاء
+                </button>
+              </>
+            ) : (
+              <>
+                <button className="btn btn-outline-primary" onClick={handleSend}>
+                  📤
+                </button>
+                <button className="btn btn-secondary" onClick={startRecording}>
+                  🎙️ تسجيل
+                </button>
+              </>
+            )}
           </div>
         </div>
       </div>
@@ -278,4 +302,4 @@ function getCurrentUserId() {
   } catch {
     return null;
   }
-}
+                                              }
