@@ -24,7 +24,7 @@ export default function SearchContacts() {
         return;
       }
       const res = await axios.post(
-        "https://peppered-lace-newsprint.glitch.me/api/users/search-contacts",
+        "process.env.NEXT_PUBLIC_BACKEND/api/users/search-contacts",
         { phones: phones.split(",").map((p) => p.trim()) },
         { headers: { Authorization: `Bearer ${token}` } }
       );
