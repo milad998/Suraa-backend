@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 import { useEffect, useRef, useState } from "react";
 import { io } from "socket.io-client";
@@ -19,11 +19,11 @@ export default function ChatComponent({ params }) {
   const [isTyping, setIsTyping] = useState(false);
   const [typingStatus, setTypingStatus] = useState(false);
   const [receiverOnline, setReceiverOnline] = useState(false);
+  const [receiverUsername, setReceiverUsername] = useState("...");
   const [recording, setRecording] = useState(false);
   const [recordTime, setRecordTime] = useState(0);
 
   const scrollRef = useRef(null);
-  const notifyAudioRef = useRef(null);
   const mediaRecorderRef = useRef(null);
   const cancelRecordingRef = useRef(false);
   const recordIntervalRef = useRef(null);
@@ -43,11 +43,15 @@ export default function ChatComponent({ params }) {
     socket.emit("checkOnline", receiverId);
 
     socket.on("typing", (typingUserId) => {
-      if (typingUserId === receiverId) setTypingStatus(true);
+      if (typingUserId === receiverId) {
+        setTypingStatus(true);
+      }
     });
 
     socket.on("stopTyping", (typingUserId) => {
-      if (typingUserId === receiverId) setTypingStatus(false);
+      if (typingUserId === receiverId) {
+        setTypingStatus(false);
+      }
     });
 
     socket.on("onlineStatus", ({ userId: uid, online }) => {
@@ -57,13 +61,13 @@ export default function ChatComponent({ params }) {
     });
 
     fetchMessages();
+    fetchReceiverUsername();
     markMessagesAsRead();
 
     return () => {
       socket.disconnect();
-      socket.off("receiveMessage");
       socket.off("typing");
-      socket.off("userStopTyping");
+      socket.off("stopTyping");
       socket.off("onlineStatus");
     };
   }, [receiverId, userId]);
@@ -80,6 +84,18 @@ export default function ChatComponent({ params }) {
     }
   };
 
+  const fetchReceiverUsername = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      const res = await axios.get(`https://peppered-lace-newsprint.glitch.me/api/users/${receiverId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setReceiverUsername(res.data.username || "مستخدم");
+    } catch (err) {
+      console.log("❌ Error fetching username:", err.message);
+    }
+  };
+
   const markMessagesAsRead = async () => {
     try {
       const token = localStorage.getItem("token");
@@ -88,12 +104,11 @@ export default function ChatComponent({ params }) {
       });
 
       setMessages((prev) =>
-        prev.map((msg) => {
-          if (msg.sender === receiverId && msg.receiver === userId && !msg.isRead) {
-            return { ...msg, isRead: true };
-          }
-          return msg;
-        })
+        prev.map((msg) =>
+          msg.sender === receiverId && msg.receiver === userId && !msg.isRead
+            ? { ...msg, isRead: true }
+            : msg
+        )
       );
     } catch (err) {
       console.log("❌ Error marking messages as read:", err.message);
@@ -119,7 +134,7 @@ export default function ChatComponent({ params }) {
       socket.emit("sendMessage", res.data);
       setMessages((prev) => [...prev, res.data]);
       setText("");
-      socket.emit("userStopTyping", userId);
+      socket.emit("stopTyping", userId);
     } catch (err) {
       console.log("❌ Error sending message:", err.message);
     }
@@ -129,13 +144,13 @@ export default function ChatComponent({ params }) {
     setText(e.target.value);
     if (!isTyping) {
       setIsTyping(true);
-      socket.emit("userTyping", userId);
+      socket.emit("typing", userId);
     }
 
     clearTimeout(typingTimeoutRef.current);
     typingTimeoutRef.current = setTimeout(() => {
       setIsTyping(false);
-      socket.emit("userStopTyping", userId);
+      socket.emit("stopTyping", userId);
     }, 2000);
   };
 
@@ -206,13 +221,11 @@ export default function ChatComponent({ params }) {
 
   return (
     <>
-      <audio ref={notifyAudioRef} src="/notify.mp3" preload="auto" />
-
-      {/* ✅ Header الثابت */}
-      <div className="d-flex align-items-center justify-content-between p-2 bg-white border-bottom shadow-sm"
-        style={{ position: "sticky", top: 0, zIndex: 1000 }}>
+      {/* ✅ رأس الصفحة ثابت دائمًا */}
+      <div className="d-flex align-items-center justify-content-between p-2 bg-white border-bottom shadow-sm sticky-top"
+        style={{ zIndex: 1000 }}>
         <div>
-          <strong>{receiverId}</strong>
+          <strong>{receiverUsername}</strong>
           {typingStatus && <span className="text-muted mx-2">✍️ يكتب الآن...</span>}
         </div>
         <div className={receiverOnline ? "text-success" : "text-danger"}>
@@ -220,16 +233,12 @@ export default function ChatComponent({ params }) {
         </div>
       </div>
 
-      {/* ✅ الرسائل */}
       <div className="d-flex flex-column justify-content-between" dir="rtl" style={{ height: "calc(100vh - 60px)", background: "#f0f2f5" }}>
         <div className="d-flex flex-column flex-grow-1 overflow-auto p-2">
           {messages.map((msg, idx) => {
             const isMine = msg.sender === userId;
             const time = new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-            let statusIcon = "";
-            if (isMine) {
-              statusIcon = msg.isRead ? "✓✓" : "✓";
-            }
+            let statusIcon = isMine ? (msg.isRead ? "✓✓" : "✓") : "";
 
             return (
               <div key={msg._id || idx} className={`d-flex mb-1 ${isMine ? "justify-content-end" : "justify-content-start"}`}>
@@ -257,7 +266,7 @@ export default function ChatComponent({ params }) {
                     <div style={{ fontWeight: "bold", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                       <span>{msg.text || "🎤 رسالة صوتية"}</span>
                       <small style={{ fontSize: "0.75rem", color: "#6c757d", marginLeft: "8px", whiteSpace: "nowrap" }}>
-                        {time} {isMine && <span className="ms-1">{statusIcon}</span>}
+                        {time} {statusIcon}
                       </small>
                     </div>
                   )}
@@ -268,7 +277,7 @@ export default function ChatComponent({ params }) {
           <div ref={scrollRef}></div>
         </div>
 
-        {/* ✅ إدخال الرسالة */}
+        {/* ✅ إدخال الرسائل */}
         <div className="p-3 bg-white border-top">
           <div className="input-group align-items-center">
             <input
@@ -306,4 +315,4 @@ function getCurrentUserId() {
   } catch {
     return null;
   }
-          }
+}
