@@ -74,7 +74,7 @@ export default function ChatsPage() {
   const fetchChats = async () => {
     try {
       const token = localStorage.getItem("token");
-      const res = await axios.get("https://peppered-lace-newsprint.glitch.me/api/chats/", {
+      const res = await axios.get("process.env.NEXT_PUBLIC_BACKEND/api/chats/", {
         headers: { Authorization: `Bearer ${token}` },
       });
       setChats(res.data);
