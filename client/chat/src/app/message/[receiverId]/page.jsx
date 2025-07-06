@@ -18,6 +18,7 @@ export default function ChatComponent({ params }) {
   const [text, setText] = useState("");
   const [isTyping, setIsTyping] = useState(false);
   const [typingStatus, setTypingStatus] = useState(false);
+  const [receiverOnline, setReceiverOnline] = useState(false);
   const [recording, setRecording] = useState(false);
   const [recordTime, setRecordTime] = useState(0);
 
@@ -39,25 +40,20 @@ export default function ChatComponent({ params }) {
 
     socket.connect();
     socket.emit("join", userId);
+    socket.emit("checkOnline", receiverId);
 
-    socket.on("receiveMessage", (msg) => {
-      setMessages((prev) => {
-        if (prev.some((m) => m._id === msg._id)) return prev;
-        if (notifyAudioRef.current) {
-          notifyAudioRef.current.play().catch((err) => {
-            console.warn("⚠️ فشل تشغيل صوت الإشعار:", err.message);
-          });
-        }
-        return [...prev, msg];
-      });
-    });
-
-    socket.on("userTyping", (typingUserId) => {
+    socket.on("typing", (typingUserId) => {
       if (typingUserId === receiverId) setTypingStatus(true);
     });
 
-    socket.on("userStopTyping", (typingUserId) => {
+    socket.on("stopTyping", (typingUserId) => {
       if (typingUserId === receiverId) setTypingStatus(false);
+    });
+
+    socket.on("onlineStatus", ({ userId: uid, online }) => {
+      if (uid === receiverId) {
+        setReceiverOnline(online);
+      }
     });
 
     fetchMessages();
@@ -66,8 +62,9 @@ export default function ChatComponent({ params }) {
     return () => {
       socket.disconnect();
       socket.off("receiveMessage");
-      socket.off("userTyping");
+      socket.off("typing");
       socket.off("userStopTyping");
+      socket.off("onlineStatus");
     };
   }, [receiverId, userId]);
 
@@ -83,7 +80,6 @@ export default function ChatComponent({ params }) {
     }
   };
 
-  // طلب تحديث حالة القراءة للرسائل الواردة من المستقبل
   const markMessagesAsRead = async () => {
     try {
       const token = localStorage.getItem("token");
@@ -91,10 +87,9 @@ export default function ChatComponent({ params }) {
         headers: { Authorization: `Bearer ${token}` },
       });
 
-      // حدثي حالة القراءة محليًا حتى تظهر الصحين
       setMessages((prev) =>
         prev.map((msg) => {
-          if (msg.sender === receiverId && msg.receiver === userId && msg.isRead === false) {
+          if (msg.sender === receiverId && msg.receiver === userId && !msg.isRead) {
             return { ...msg, isRead: true };
           }
           return msg;
@@ -147,14 +142,10 @@ export default function ChatComponent({ params }) {
   const startRecording = async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      const recorder = new MediaRecorder(stream, {
-        mimeType: "audio/webm",
-      });
-
+      const recorder = new MediaRecorder(stream, { mimeType: "audio/webm" });
       const chunks = [];
 
       recorder.ondataavailable = (e) => chunks.push(e.data);
-
       recorder.onstop = async () => {
         clearInterval(recordIntervalRef.current);
         setRecordTime(0);
@@ -166,11 +157,9 @@ export default function ChatComponent({ params }) {
 
         const blob = new Blob(chunks, { type: "audio/webm" });
         const file = new File([blob], `voice_${Date.now()}.webm`, { type: "audio/webm" });
-
         const formData = new FormData();
         formData.append("receiver", receiverId);
         formData.append("audio", file);
-
         const token = localStorage.getItem("token");
 
         try {
@@ -191,7 +180,6 @@ export default function ChatComponent({ params }) {
       recorder.start();
       mediaRecorderRef.current = recorder;
       setRecording(true);
-
       recordIntervalRef.current = setInterval(() => {
         setRecordTime((prev) => prev + 1);
       }, 1000);
@@ -220,16 +208,27 @@ export default function ChatComponent({ params }) {
     <>
       <audio ref={notifyAudioRef} src="/notify.mp3" preload="auto" />
 
-      <div className="d-flex flex-column justify-content-between" dir="rtl" style={{ height: "100vh", background: "#f0f2f5" }}>
+      {/* ✅ Header الثابت */}
+      <div className="d-flex align-items-center justify-content-between p-2 bg-white border-bottom shadow-sm"
+        style={{ position: "sticky", top: 0, zIndex: 1000 }}>
+        <div>
+          <strong>{receiverId}</strong>
+          {typingStatus && <span className="text-muted mx-2">✍️ يكتب الآن...</span>}
+        </div>
+        <div className={receiverOnline ? "text-success" : "text-danger"}>
+          {receiverOnline ? "🟢 متصل" : "🔴 غير متصل"}
+        </div>
+      </div>
+
+      {/* ✅ الرسائل */}
+      <div className="d-flex flex-column justify-content-between" dir="rtl" style={{ height: "calc(100vh - 60px)", background: "#f0f2f5" }}>
         <div className="d-flex flex-column flex-grow-1 overflow-auto p-2">
           {messages.map((msg, idx) => {
             const isMine = msg.sender === userId;
             const time = new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-
             let statusIcon = "";
             if (isMine) {
-              if (msg.isRead) statusIcon = "✓✓";  // مقروءة
-              else statusIcon = "✓";               // لم تقرأ بعد
+              statusIcon = msg.isRead ? "✓✓" : "✓";
             }
 
             return (
@@ -250,12 +249,7 @@ export default function ChatComponent({ params }) {
                         <source src={msg.audioUrl} type="audio/webm" />
                         المتصفح لا يدعم تشغيل هذا الملف.
                       </audio>
-                      <a
-                        href={msg.audioUrl}
-                        download={`voice_${msg._id || idx}.webm`}
-                        className="btn btn-sm btn-link mt-1"
-                        style={{ textDecoration: "none", color: "#0d6efd" }}
-                      >
+                      <a href={msg.audioUrl} download className="btn btn-sm btn-link mt-1" style={{ textDecoration: "none", color: "#0d6efd" }}>
                         ⬇️ تحميل
                       </a>
                     </>
@@ -271,10 +265,10 @@ export default function ChatComponent({ params }) {
               </div>
             );
           })}
-          {typingStatus && <div className="text-muted mb-2">...يكتب الآن</div>}
           <div ref={scrollRef}></div>
         </div>
 
+        {/* ✅ إدخال الرسالة */}
         <div className="p-3 bg-white border-top">
           <div className="input-group align-items-center">
             <input
@@ -287,21 +281,13 @@ export default function ChatComponent({ params }) {
             />
             {recording ? (
               <>
-                <button className="btn btn-danger" onClick={stopRecording}>
-                  ⏹️ إيقاف ({recordTime}s)
-                </button>
-                <button className="btn btn-outline-secondary" onClick={cancelRecording}>
-                  ❌ إلغاء
-                </button>
+                <button className="btn btn-danger" onClick={stopRecording}>⏹️ إيقاف ({recordTime}s)</button>
+                <button className="btn btn-outline-secondary" onClick={cancelRecording}>❌ إلغاء</button>
               </>
             ) : (
               <>
-                <button className="btn btn-outline-primary" onClick={handleSend}>
-                  📤
-                </button>
-                <button className="btn btn-secondary" onClick={startRecording}>
-                  🎙️ تسجيل
-                </button>
+                <button className="btn btn-outline-primary" onClick={handleSend}>📤</button>
+                <button className="btn btn-secondary" onClick={startRecording}>🎙️ تسجيل</button>
               </>
             )}
           </div>
@@ -320,4 +306,4 @@ function getCurrentUserId() {
   } catch {
     return null;
   }
-}
+          }
