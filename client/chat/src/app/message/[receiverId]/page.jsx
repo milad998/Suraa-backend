@@ -5,7 +5,7 @@ import { io } from "socket.io-client";
 import axios from "axios";
 import { useRouter } from "next/navigation";
 
-const socket = io(process.env.NEXT_PUBLIC_SOCKET_URL || "https://peppered-lace-newsprint.glitch.me", {
+const socket = io(process.env.NEXT_PUBLIC_SOCKET_URL || process.env.NEXT_PUBLIC_BACKEND, {
   autoConnect: false,
 });
 
@@ -99,7 +99,7 @@ export default function ChatComponent({ params }) {
   const markMessagesAsRead = async () => {
     try {
       const token = localStorage.getItem("token");
-      await axios.put(`https://peppered-lace-newsprint.glitch.me/api/messages/mark-read/${receiverId}`, {}, {
+      await axios.put(`process.env.NEXT_PUBLIC_BACKEND/api/messages/mark-read/${receiverId}`, {}, {
         headers: { Authorization: `Bearer ${token}` },
       });
 
