@@ -32,12 +32,13 @@ exports.sendMessage = async (req, res) => {
 
       // تحديد نوع المحتوى بناءً على امتداد الملف
       const mimeTypes = {
-        '.aac': 'audio/aac',
-        '.mp3': 'audio/mpeg',
-        '.wav': 'audio/wav',
-        '.ogg': 'audio/ogg',
-        '.m4a': 'audio/mp4',
-      };
+  '.aac': 'audio/aac',
+  '.mp3': 'audio/mpeg',
+  '.wav': 'audio/wav',
+  '.ogg': 'audio/ogg',
+  '.m4a': 'audio/mp4',
+  '.webm': 'audio/webm', // ✅ أضف هذا السطر
+};
 
       const ext = path.extname(req.file.originalname).toLowerCase();
       const contentType = mimeTypes[ext] || req.file.mimetype || 'application/octet-stream';
