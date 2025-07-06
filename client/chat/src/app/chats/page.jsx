@@ -36,21 +36,23 @@ export default function ChatsPage() {
     socket.on("receiveMessage", (msg) => {
       const otherId = msg.sender === userId ? msg.receiver : msg.sender;
 
-      // ✅ تشغيل صوت الإشعار
-      const audio = document.getElementById("notify-audio");
-      if (audio) {
-        audio.play().catch((err) =>
-          console.warn("فشل تشغيل صوت الإشعار:", err.message)
-        );
+      // ✅ تشغيل صوت الإشعار فقط إذا لم تكن داخل نفس صفحة الرسائل المفتوحة
+      if (window.location.pathname !== `/message/${otherId}`) {
+        const audio = document.getElementById("notify-audio");
+        if (audio) {
+          audio.play().catch((err) =>
+            console.warn("فشل تشغيل صوت الإشعار:", err.message)
+          );
+        }
+
+        // ✅ تحديث عداد الرسائل غير المقروءة
+        setUnreadCounts((prev) => ({
+          ...prev,
+          [otherId]: (prev[otherId] || 0) + 1,
+        }));
       }
 
-      // ✅ تحديث عداد الرسائل
-      setUnreadCounts((prev) => ({
-        ...prev,
-        [otherId]: (prev[otherId] || 0) + 1,
-      }));
-
-      // ✅ تحديث عرض آخر رسالة
+      // ✅ تحديث آخر رسالة في المحادثة
       setChats((prev) =>
         prev.map((chat) =>
           chat.users.some((u) => u._id === otherId)
@@ -95,17 +97,24 @@ export default function ChatsPage() {
   return (
     <div className="container py-5" dir="rtl">
       <audio id="notify-audio" src="/notify.mp3" preload="auto" />
-      
+
       {chats.map((chat) => {
         const otherUser = chat.users.find((u) => u._id !== userId);
+        if (!otherUser) return null;
+
         return (
           <div
             key={chat._id}
             onClick={() => handleOpenChat(otherUser._id)}
-            className="list-group-item d-flex justify-content-between align-items-center"
-            style={{ cursor: "pointer" }}
+            className="list-group-item list-group-item-action d-flex justify-content-between align-items-center shadow-sm mb-2"
+            style={{
+              borderRadius: "12px",
+              backgroundColor: "#fff",
+              border: "1px solid #ddd",
+              cursor: "pointer",
+            }}
           >
-            <div className="background-silver-transparent p-3">
+            <div>
               <strong>{otherUser?.username || "مستخدم"}</strong>
               <br />
               <small className="text-muted">{chat.lastMessage || "بدون رسائل"}</small>
@@ -125,7 +134,7 @@ export default function ChatsPage() {
                   backgroundColor: isUserOnline(otherUser._id) ? "limegreen" : "#ccc",
                 }}
               ></span>
-              <button className="btn btn-sm btn-danger">حذف</button>
+              {/* <button className="btn btn-sm btn-danger">حذف</button> */}
             </div>
           </div>
         );
@@ -143,4 +152,4 @@ function getCurrentUserId() {
   } catch {
     return null;
   }
-}
+        }
