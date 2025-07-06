@@ -221,18 +221,6 @@ export default function ChatComponent({ params }) {
 
   return (
     <>
-      {/* ✅ رأس الصفحة ثابت دائمًا */}
-      <div className="d-flex align-items-center justify-content-between p-2 bg-white border-bottom shadow-sm sticky-top"
-        style={{ zIndex: 1000 }}>
-        <div>
-          <strong>{receiverUsername}</strong>
-          {typingStatus && <span className="text-muted mx-2">✍️ يكتب الآن...</span>}
-        </div>
-        <div className={receiverOnline ? "text-success" : "text-danger"}>
-          {receiverOnline ? "🟢 متصل" : "🔴 غير متصل"}
-        </div>
-      </div>
-
       <div className="d-flex flex-column justify-content-between" dir="rtl" style={{ height: "calc(100vh - 60px)", background: "#f0f2f5" }}>
         <div className="d-flex flex-column flex-grow-1 overflow-auto p-2">
           {messages.map((msg, idx) => {
